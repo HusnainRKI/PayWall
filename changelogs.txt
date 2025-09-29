@@ -1,0 +1,119 @@
+PAYWALL ANYWHERE - CHANGELOG
+============================
+
+= 1.0.0 - Initial Release =
+
+**Release Date: TBD**
+
+🎉 **New Features:**
+- Whole-post paywall with "Lock From Here ↓" dynamic block
+- Block-level locking for any Gutenberg block via Inspector controls
+- Paragraph-level locking within blocks using toolbar actions
+- Media protection with blurred placeholders and secure file serving
+- Server-side content security (no DOM leakage)
+- Guest checkout with magic link email authentication
+- User account sync for guest purchases
+- Stripe native integration with Checkout Sessions
+- WooCommerce Simple Product integration
+- Time-based access expiration (configurable days)
+- Teaser content system (first N paragraphs or custom)
+- Cache-friendly implementation with proper headers
+- Admin interface for managing premium items and entitlements
+- REST API endpoints for headless implementations
+- Comprehensive developer hooks and filters
+- Shortcode support for flexible integration
+- WordPress.org review standards compliance
+
+🔧 **Technical Implementation:**
+- Custom database tables for scale: paywall_anywhere_items, paywall_anywhere_entitlements
+- Proper WordPress hooks and actions
+- CSRF protection with nonces
+- Capability-based security
+- Input sanitization and output escaping
+- Prepared SQL statements
+- Block editor extensions with React components
+- Magic link token system with HMAC security
+- Session and cookie-based guest access
+- Automatic cleanup of expired entitlements
+
+🛡️ **Security Features:**
+- Server-side content filtering (no client-side obfuscation)
+- Magic links with cryptographically secure tokens
+- Rate limiting on payment endpoints
+- Secure file serving for protected media
+- Protection against content leakage in feeds, APIs, and meta tags
+- WordPress capability checks throughout
+
+📚 **Documentation:**
+- Comprehensive README.md with developer examples
+- WordPress.org readme.txt with screenshots and FAQ
+- Inline code documentation with phpDoc
+- Security decision explanations at critical points
+
+🔌 **Developer Surface:**
+- Helper function: paywall_anywhere_is_unlocked()
+- Filters: paywall_anywhere_can_access_item, paywall_anywhere_placeholder_html
+- Actions: paywall_anywhere_entitlement_created, paywall_anywhere_payment_completed
+- REST endpoints: /wp-json/paywall-anywhere/v1/items, /entitlements
+- Block extensions for locking controls
+- Shortcodes: [paywall_anywhere_unlock_button], [paywall_anywhere_premium_content]
+
+🎨 **User Experience:**
+- Intuitive block editor integration
+- Visual lock indicators in editor
+- Seamless payment flow
+- Responsive design
+- Accessibility compliant (WCAG 2.1 AA)
+- Internationalization ready
+
+⚡ **Performance:**
+- Minimal database queries
+- Efficient caching strategy
+- CDN compatibility
+- Optimized for high-traffic sites
+- Clean uninstall process
+
+📋 **Requirements Met:**
+- WordPress 6.5+ compatibility
+- PHP 8.1+ requirement
+- Gutenberg integration
+- MySQL/MariaDB custom tables
+- GPL v2 licensing
+- WordPress.org review compliance
+
+🔄 **Future Roadmap:**
+- Additional payment providers
+- Subscription-based access
+- Advanced analytics
+- Bulk operations
+- Import/export functionality
+- Multi-site support
+- Advanced teaser controls
+- Social proof features
+
+---
+
+**Installation Notes:**
+- First release requires manual Stripe key configuration
+- WooCommerce integration works with existing setups
+- Cache plugins may need configuration for optimal performance
+- CDN setups should implement proper Vary headers
+
+**Breaking Changes:**
+- None (initial release)
+
+**Deprecations:**
+- None (initial release)
+
+**Security Updates:**
+- All features implemented with security-first approach
+- Regular security audits planned for future releases
+
+**Known Issues:**
+- None currently identified
+
+**Credits:**
+- WordPress core team for block editor APIs
+- Stripe for payment processing infrastructure
+- WooCommerce team for e-commerce hooks
+- WordPress.org plugin review team for standards guidance

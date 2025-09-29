@@ -1,14 +1,14 @@
 {
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
-    "name": "pc/gate-start",
+    "name": "paywall-anywhere/gate-start",
     "version": "1.0.0",
     "title": "Paywall: Gate Start",
     "category": "widgets",
     "icon": "lock",
     "description": "Mark the start of premium content. Everything below this block will be locked.",
     "keywords": ["paywall", "premium", "lock", "gate"],
-    "textdomain": "paywall-premium-content",
+    "textdomain": "paywall-anywhere",
     "editorScript": "file:./index.js",
     "editorStyle": "file:./editor.css",
     "style": "file:./style.css",
@@ -29,9 +29,9 @@
             "type": "boolean",
             "default": false
         },
-        "includeRoutes": {
-            "type": "boolean",
-            "default": false
+        "customMessage": {
+            "type": "string",
+            "default": ""
         }
     },
     "supports": {

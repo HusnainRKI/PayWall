@@ -1,5 +1,5 @@
 /**
- * PayWall Premium Content - Editor JavaScript
+ * Paywall Anywhere - Editor JavaScript
  */
 
 (function(wp, $) {
@@ -15,9 +15,9 @@
     /**
      * Gate Start Block
      */
-    registerBlockType('pc/gate-start', {
-        title: __('Paywall: Gate Start', 'paywall-premium-content'),
-        description: __('Mark the start of premium content. Everything below this block will be locked.', 'paywall-premium-content'),
+    registerBlockType('paywall-anywhere/gate-start', {
+        title: __('Paywall: Gate Start', 'paywall-anywhere'),
+        description: __('Mark the start of premium content. Everything below this block will be locked.', 'paywall-anywhere'),
         icon: 'lock',
         category: 'widgets',
         keywords: [__('paywall'), __('premium'), __('lock')],
@@ -38,37 +38,46 @@
                 type: 'boolean',
                 default: false
             },
-            includeRoutes: {
-                type: 'boolean',
-                default: false
+            customMessage: {
+                type: 'string',
+                default: ''
             }
         },
         
         edit: function(props) {
             const { attributes, setAttributes } = props;
-            const { price, currency, expiresDays, adFree, includeRoutes } = attributes;
+            const { price, currency, expiresDays, adFree, customMessage } = attributes;
             
             const blockProps = useBlockProps({
-                className: 'pc-gate-start-block'
+                className: 'paywall-anywhere-gate-start'
             });
-            
-            const priceDisplay = (price / 100).toFixed(2);
             
             return (
                 <Fragment>
+                    <div {...blockProps}>
+                        <div className="paywall-anywhere-gate-preview">
+                            <span className="paywall-anywhere-gate-icon">🚪</span>
+                            <h4>{__('Paywall Gate', 'paywall-anywhere')}</h4>
+                            <p>{__('Content below this point will be locked', 'paywall-anywhere')}</p>
+                            <div className="paywall-anywhere-gate-price">
+                                {paywall_anywhere_format_price(price, currency)}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <InspectorControls>
-                        <PanelBody title={__('Premium Content Settings', 'paywall-premium-content')}>
-                            <TextControl
-                                label={__('Price (cents)', 'paywall-premium-content')}
+                        <PanelBody title={__('Paywall Settings', 'paywall-anywhere')} initialOpen={true}>
+                            <RangeControl
+                                label={__('Price (cents)', 'paywall-anywhere')}
                                 value={price}
-                                onChange={(value) => setAttributes({ price: parseInt(value) || 0 })}
-                                type="number"
-                                min="0"
-                                help={__('Price in cents (500 = $5.00)', 'paywall-premium-content')}
+                                onChange={(value) => setAttributes({ price: value })}
+                                min={0}
+                                max={10000}
+                                step={50}
                             />
                             
                             <SelectControl
-                                label={__('Currency', 'paywall-premium-content')}
+                                label={__('Currency', 'paywall-anywhere')}
                                 value={currency}
                                 options={[
                                     { label: 'USD ($)', value: 'USD' },
@@ -80,47 +89,27 @@
                             />
                             
                             <RangeControl
-                                label={__('Access Duration (Days)', 'paywall-premium-content')}
+                                label={__('Access Duration (Days)', 'paywall-anywhere')}
                                 value={expiresDays}
                                 onChange={(value) => setAttributes({ expiresDays: value })}
                                 min={1}
                                 max={365}
-                                help={__('How long users have access after purchase', 'paywall-premium-content')}
+                            />
+                            
+                            <TextControl
+                                label={__('Custom Message', 'paywall-anywhere')}
+                                value={customMessage}
+                                onChange={(value) => setAttributes({ customMessage: value })}
+                                placeholder={__('Optional custom unlock message', 'paywall-anywhere')}
                             />
                             
                             <ToggleControl
-                                label={__('Ad-Free Mode', 'paywall-premium-content')}
+                                label={__('Ad-Free for Premium Users', 'paywall-anywhere')}
                                 checked={adFree}
                                 onChange={(value) => setAttributes({ adFree: value })}
-                                help={__('Hide ads for premium users', 'paywall-premium-content')}
-                            />
-                            
-                            <ToggleControl
-                                label={__('Include Print/PDF Routes', 'paywall-premium-content')}
-                                checked={includeRoutes}
-                                onChange={(value) => setAttributes({ includeRoutes: value })}
-                                help={__('Apply paywall to print and PDF versions', 'paywall-premium-content')}
                             />
                         </PanelBody>
                     </InspectorControls>
-                    
-                    <div {...blockProps}>
-                        <div className="pc-gate-start-preview">
-                            <div className="pc-gate-icon">🚪</div>
-                            <div className="pc-gate-content">
-                                <h4>{__('Premium Content Gate', 'paywall-premium-content')}</h4>
-                                <p>
-                                    {__('Price:', 'paywall-premium-content')} <strong>{currency === 'USD' ? '$' : currency + ' '}{priceDisplay}</strong>
-                                    {expiresDays && (
-                                        <span> • {__('Access for', 'paywall-premium-content')} <strong>{expiresDays} {__('days', 'paywall-premium-content')}</strong></span>
-                                    )}
-                                </p>
-                                <p className="pc-gate-description">
-                                    {__('All content below this block will be locked for non-premium users.', 'paywall-premium-content')}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </Fragment>
             );
         },
@@ -134,126 +123,77 @@
     /**
      * Unlock CTA Block
      */
-    registerBlockType('pc/unlock-cta', {
-        title: __('Paywall: Unlock CTA', 'paywall-premium-content'),
-        description: __('Display a call-to-action button for purchasing premium content.', 'paywall-premium-content'),
+    registerBlockType('paywall-anywhere/unlock-cta', {
+        title: __('Paywall: Unlock Button', 'paywall-anywhere'),
+        description: __('Display an unlock button for premium content.', 'paywall-anywhere'),
         icon: 'unlock',
         category: 'widgets',
-        keywords: [__('paywall'), __('unlock'), __('purchase'), __('cta')],
+        keywords: [__('unlock'), __('premium'), __('cta')],
         attributes: {
             itemId: {
                 type: 'number',
                 default: 0
             },
+            providers: {
+                type: 'array',
+                default: ['stripe', 'woocommerce']
+            },
             style: {
                 type: 'string',
                 default: 'filled'
             },
-            customText: {
+            text: {
                 type: 'string',
                 default: ''
-            },
-            alignment: {
-                type: 'string',
-                default: 'center'
             }
         },
         
         edit: function(props) {
             const { attributes, setAttributes } = props;
-            const { itemId, style, customText, alignment } = attributes;
-            
-            const [availableItems, setAvailableItems] = useState([]);
-            const [loading, setLoading] = useState(false);
+            const { itemId, providers, style, text } = attributes;
             
             const blockProps = useBlockProps({
-                className: `pc-unlock-cta-block pc-align-${alignment}`
+                className: 'paywall-anywhere-unlock-cta'
             });
-            
-            // Load available premium items for current post
-            const postId = useSelect(select => select('core/editor').getCurrentPostId());
-            
-            React.useEffect(() => {
-                if (postId) {
-                    setLoading(true);
-                    wp.apiFetch({
-                        path: `/pc/v1/items?post=${postId}`
-                    }).then(items => {
-                        setAvailableItems(items);
-                        setLoading(false);
-                    }).catch(() => {
-                        setLoading(false);
-                    });
-                }
-            }, [postId]);
-            
-            const selectedItem = availableItems.find(item => item.id === itemId);
             
             return (
                 <Fragment>
+                    <div {...blockProps}>
+                        <div className="paywall-anywhere-cta-preview">
+                            <button className={`paywall-anywhere-unlock-btn paywall-anywhere-unlock-btn-${style}`}>
+                                {text || __('Unlock Content', 'paywall-anywhere')}
+                            </button>
+                        </div>
+                    </div>
+                    
                     <InspectorControls>
-                        <PanelBody title={__('Unlock Button Settings', 'paywall-premium-content')}>
-                            <SelectControl
-                                label={__('Premium Item', 'paywall-premium-content')}
+                        <PanelBody title={__('Button Settings', 'paywall-anywhere')} initialOpen={true}>
+                            <TextControl
+                                label={__('Item ID', 'paywall-anywhere')}
                                 value={itemId}
-                                options={[
-                                    { label: __('Select an item...', 'paywall-premium-content'), value: 0 },
-                                    ...availableItems.map(item => ({
-                                        label: `${item.scope}: ${item.selector || 'Whole Post'} - $${(item.price_minor / 100).toFixed(2)}`,
-                                        value: item.id
-                                    }))
-                                ]}
-                                onChange={(value) => setAttributes({ itemId: parseInt(value) })}
-                                help={loading ? __('Loading items...', 'paywall-premium-content') : __('Choose which premium item this button unlocks', 'paywall-premium-content')}
-                            />
-                            
-                            <SelectControl
-                                label={__('Button Style', 'paywall-premium-content')}
-                                value={style}
-                                options={[
-                                    { label: __('Filled', 'paywall-premium-content'), value: 'filled' },
-                                    { label: __('Outline', 'paywall-premium-content'), value: 'outline' }
-                                ]}
-                                onChange={(value) => setAttributes({ style: value })}
-                            />
-                            
-                            <SelectControl
-                                label={__('Alignment', 'paywall-premium-content')}
-                                value={alignment}
-                                options={[
-                                    { label: __('Left', 'paywall-premium-content'), value: 'left' },
-                                    { label: __('Center', 'paywall-premium-content'), value: 'center' },
-                                    { label: __('Right', 'paywall-premium-content'), value: 'right' }
-                                ]}
-                                onChange={(value) => setAttributes({ alignment: value })}
+                                onChange={(value) => setAttributes({ itemId: parseInt(value) || 0 })}
+                                type="number"
+                                help={__('The premium item ID to unlock', 'paywall-anywhere')}
                             />
                             
                             <TextControl
-                                label={__('Custom Button Text', 'paywall-premium-content')}
-                                value={customText}
-                                onChange={(value) => setAttributes({ customText: value })}
-                                help={__('Leave empty to use default text', 'paywall-premium-content')}
+                                label={__('Button Text', 'paywall-anywhere')}
+                                value={text}
+                                onChange={(value) => setAttributes({ text: value })}
+                                placeholder={__('Leave empty for default text', 'paywall-anywhere')}
+                            />
+                            
+                            <SelectControl
+                                label={__('Button Style', 'paywall-anywhere')}
+                                value={style}
+                                options={[
+                                    { label: __('Filled', 'paywall-anywhere'), value: 'filled' },
+                                    { label: __('Outline', 'paywall-anywhere'), value: 'outline' }
+                                ]}
+                                onChange={(value) => setAttributes({ style: value })}
                             />
                         </PanelBody>
                     </InspectorControls>
-                    
-                    <div {...blockProps}>
-                        <div className={`pc-unlock-cta-preview pc-unlock-cta--${style}`}>
-                            {selectedItem ? (
-                                <div className="pc-cta-content">
-                                    <h4>{__('Premium Content Available', 'paywall-premium-content')}</h4>
-                                    <p>{__('Unlock this content for', 'paywall-premium-content')} <strong>${(selectedItem.price_minor / 100).toFixed(2)}</strong></p>
-                                    <button className={`pc-unlock-btn pc-unlock-btn--${style}`}>
-                                        {customText || `${__('Unlock for', 'paywall-premium-content')} $${(selectedItem.price_minor / 100).toFixed(2)}`}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="pc-cta-placeholder">
-                                    <p>{__('Select a premium item to configure this unlock button.', 'paywall-premium-content')}</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
                 </Fragment>
             );
         },
@@ -280,42 +220,35 @@
             }
             
             const { attributes, setAttributes } = props;
-            const isLocked = attributes.pcLocked || false;
-            const price = attributes.pcPrice || 500;
-            const currency = attributes.pcCurrency || 'USD';
-            const expiresDays = attributes.pcExpiresDays || 30;
+            const isLocked = attributes.paywallAnywhereLocked || false;
+            const price = attributes.paywallAnywherePrice || 500;
+            const currency = attributes.paywallAnywhereCurrency || 'USD';
+            const expiresDays = attributes.paywallAnywhereExpiresDays || 30;
             
             return (
                 <Fragment>
                     <BlockEdit {...props} />
                     <InspectorControls>
-                        <PanelBody title={__('PayWall Settings', 'paywall-premium-content')} initialOpen={false}>
+                        <PanelBody title={__('Paywall Settings', 'paywall-anywhere')} initialOpen={false}>
                             <ToggleControl
-                                label={__('Lock this block', 'paywall-premium-content')}
+                                label={__('Lock this block', 'paywall-anywhere')}
                                 checked={isLocked}
-                                onChange={(value) => {
-                                    setAttributes({ 
-                                        pcLocked: value,
-                                        pcPrice: value ? price : undefined,
-                                        pcCurrency: value ? currency : undefined,
-                                        pcExpiresDays: value ? expiresDays : undefined
-                                    });
-                                }}
-                                help={__('Make this block premium content', 'paywall-premium-content')}
+                                onChange={(value) => setAttributes({ paywallAnywhereLocked: value })}
                             />
                             
                             {isLocked && (
                                 <Fragment>
-                                    <TextControl
-                                        label={__('Price (cents)', 'paywall-premium-content')}
+                                    <RangeControl
+                                        label={__('Price (cents)', 'paywall-anywhere')}
                                         value={price}
-                                        onChange={(value) => setAttributes({ pcPrice: parseInt(value) || 0 })}
-                                        type="number"
-                                        min="0"
+                                        onChange={(value) => setAttributes({ paywallAnywherePrice: value })}
+                                        min={0}
+                                        max={10000}
+                                        step={50}
                                     />
                                     
                                     <SelectControl
-                                        label={__('Currency', 'paywall-premium-content')}
+                                        label={__('Currency', 'paywall-anywhere')}
                                         value={currency}
                                         options={[
                                             { label: 'USD ($)', value: 'USD' },
@@ -323,13 +256,13 @@
                                             { label: 'GBP (£)', value: 'GBP' },
                                             { label: 'JPY (¥)', value: 'JPY' }
                                         ]}
-                                        onChange={(value) => setAttributes({ pcCurrency: value })}
+                                        onChange={(value) => setAttributes({ paywallAnywhereCurrency: value })}
                                     />
                                     
                                     <RangeControl
-                                        label={__('Access Duration (Days)', 'paywall-premium-content')}
+                                        label={__('Access Duration (Days)', 'paywall-anywhere')}
                                         value={expiresDays}
-                                        onChange={(value) => setAttributes({ pcExpiresDays: value })}
+                                        onChange={(value) => setAttributes({ paywallAnywhereExpiresDays: value })}
                                         min={1}
                                         max={365}
                                     />
@@ -342,7 +275,7 @@
         };
     }, 'withLockControls');
     
-    addFilter('editor.BlockEdit', 'pc/with-lock-controls', withLockControls);
+    addFilter('editor.BlockEdit', 'paywall-anywhere/with-lock-controls', withLockControls);
     
     /**
      * Add locked indicator to blocks
@@ -350,16 +283,19 @@
     const withLockedIndicator = createHigherOrderComponent((BlockListBlock) => {
         return (props) => {
             const { attributes } = props;
-            const isLocked = attributes.pcLocked || false;
+            const isLocked = attributes.paywallAnywhereLocked || false;
             
             if (!isLocked) {
                 return <BlockListBlock {...props} />;
             }
             
             return (
-                <div className="pc-locked-block-wrapper">
-                    <div className="pc-locked-indicator">
-                        🔒 {__('Premium Content', 'paywall-premium-content')} - ${((attributes.pcPrice || 500) / 100).toFixed(2)}
+                <div className="paywall-anywhere-locked-block">
+                    <div className="paywall-anywhere-locked-overlay">
+                        <span className="paywall-anywhere-lock-icon">🔒</span>
+                        <span className="paywall-anywhere-lock-text">
+                            {__('Premium Block', 'paywall-anywhere')}
+                        </span>
                     </div>
                     <BlockListBlock {...props} />
                 </div>
@@ -367,6 +303,24 @@
         };
     }, 'withLockedIndicator');
     
-    addFilter('editor.BlockListBlock', 'pc/with-locked-indicator', withLockedIndicator);
+    addFilter('editor.BlockListBlock', 'paywall-anywhere/with-locked-indicator', withLockedIndicator);
+    
+    /**
+     * Utility functions
+     */
+    function paywall_anywhere_format_price(priceMinor, currency) {
+        const symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        };
+        
+        const symbol = symbols[currency] || '$';
+        const divisor = (currency === 'JPY') ? 1 : 100;
+        const price = priceMinor / divisor;
+        
+        return symbol + price.toFixed((currency === 'JPY') ? 0 : 2);
+    }
     
 })(window.wp, jQuery);
