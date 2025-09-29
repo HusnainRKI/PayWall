@@ -23,6 +23,7 @@ class Admin_Interface {
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+        add_action( 'wp_ajax_paywall_anywhere_test_stripe', array( $this, 'ajax_test_stripe_connection' ) );
     }
     
     /**
@@ -180,16 +181,33 @@ class Admin_Interface {
             wp_die( __( 'You do not have sufficient permissions to access this page.', 'paywall-anywhere' ) );
         }
         
+        // Get current tab
+        $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
+        
         ?>
         <div class="wrap">
             <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-            <form method="post" action="options.php">
-                <?php
-                settings_fields( 'paywall_anywhere_settings' );
-                do_settings_sections( 'paywall_anywhere_settings' );
-                submit_button();
-                ?>
-            </form>
+            
+            <!-- Tabs Navigation -->
+            <nav class="nav-tab-wrapper wp-clearfix">
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=paywall-anywhere&tab=general' ) ); ?>" 
+                   class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">
+                    <?php _e( 'General Settings', 'paywall-anywhere' ); ?>
+                </a>
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=paywall-anywhere&tab=payments' ) ); ?>" 
+                   class="nav-tab <?php echo $current_tab === 'payments' ? 'nav-tab-active' : ''; ?>">
+                    <?php _e( 'Payment Settings', 'paywall-anywhere' ); ?>
+                </a>
+            </nav>
+            
+            <!-- Tab Content -->
+            <div class="paywall-anywhere-tab-content">
+                <?php if ( $current_tab === 'general' ) : ?>
+                    <?php $this->render_general_settings_tab(); ?>
+                <?php elseif ( $current_tab === 'payments' ) : ?>
+                    <?php $this->render_payments_settings_tab(); ?>
+                <?php endif; ?>
+            </div>
         </div>
         <?php
     }
@@ -398,6 +416,23 @@ class Admin_Interface {
             array(), 
             PAYWALL_ANYWHERE_VERSION 
         );
+        
+        wp_enqueue_script(
+            'paywall-anywhere-admin',
+            PAYWALL_ANYWHERE_PLUGIN_URL . 'assets/js/admin.js',
+            array( 'jquery' ),
+            PAYWALL_ANYWHERE_VERSION,
+            true
+        );
+        
+        wp_localize_script(
+            'paywall-anywhere-admin',
+            'paywallAnywhereAdmin',
+            array(
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+                'nonce' => wp_create_nonce( 'paywall_anywhere_admin_ajax' )
+            )
+        );
     }
     
     // Settings field callbacks
@@ -494,5 +529,290 @@ class Admin_Interface {
         $value = get_option( 'paywall_anywhere_magic_link_ttl', 3600 );
         printf( '<input type="number" name="paywall_anywhere_magic_link_ttl" value="%d" min="300" step="60" />', $value );
         echo '<p class="description">' . __( 'How long magic links remain valid (in seconds)', 'paywall-anywhere' ) . '</p>';
+    }
+    
+    /**
+     * Render general settings tab
+     */
+    private function render_general_settings_tab() {
+        ?>
+        <form method="post" action="options.php" id="paywall-anywhere-general-form">
+            <?php settings_fields( 'paywall_anywhere_settings' ); ?>
+            
+            <div class="paywall-anywhere-settings-section">
+                <h3><?php _e( 'General Settings', 'paywall-anywhere' ); ?></h3>
+                <div class="paywall-anywhere-settings-content">
+                    <p><?php _e( 'Configure general settings for Paywall Anywhere.', 'paywall-anywhere' ); ?></p>
+                    
+                    <table class="paywall-anywhere-form-table">
+                        <tbody>
+                            <tr>
+                                <th><?php _e( 'Default Currency', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->currency_field_callback(); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php _e( 'Default Price (cents)', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->price_field_callback(); ?>
+                                    <div class="paywall-anywhere-validation-error" id="price-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php _e( 'Default Expires (days)', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->expires_field_callback(); ?>
+                                    <div class="paywall-anywhere-validation-error" id="expires-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php _e( 'Teaser Length (words)', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->teaser_field_callback(); ?>
+                                    <div class="paywall-anywhere-validation-error" id="teaser-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <?php submit_button(); ?>
+        </form>
+        <?php
+    }
+    
+    /**
+     * Render payments settings tab
+     */
+    private function render_payments_settings_tab() {
+        $woo_active = class_exists( 'WooCommerce' );
+        ?>
+        <form method="post" action="options.php" id="paywall-anywhere-payments-form">
+            <?php settings_fields( 'paywall_anywhere_settings' ); ?>
+            
+            <!-- Stripe Settings -->
+            <div class="paywall-anywhere-settings-section">
+                <h3><?php _e( 'Stripe Settings', 'paywall-anywhere' ); ?></h3>
+                <div class="paywall-anywhere-settings-content">
+                    <p><?php _e( 'Configure Stripe payment integration.', 'paywall-anywhere' ); ?></p>
+                    
+                    <table class="paywall-anywhere-form-table">
+                        <tbody>
+                            <tr>
+                                <th><?php _e( 'Enable Stripe', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->stripe_enabled_field_callback(); ?>
+                                </td>
+                            </tr>
+                            <tr id="stripe-keys-row">
+                                <th><?php _e( 'Stripe API Keys', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->enhanced_stripe_keys_field_callback(); ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- WooCommerce Settings -->
+            <div class="paywall-anywhere-settings-section">
+                <h3><?php _e( 'WooCommerce Settings', 'paywall-anywhere' ); ?></h3>
+                <div class="paywall-anywhere-settings-content">
+                    <p><?php _e( 'Configure WooCommerce integration.', 'paywall-anywhere' ); ?></p>
+                    
+                    <?php if ( ! $woo_active ) : ?>
+                        <div class="paywall-anywhere-notice paywall-anywhere-notice-warning">
+                            <strong><?php _e( 'WooCommerce Status:', 'paywall-anywhere' ); ?></strong>
+                            <?php _e( 'WooCommerce plugin is not active. Install and activate WooCommerce to enable integration.', 'paywall-anywhere' ); ?>
+                        </div>
+                    <?php else : ?>
+                        <div class="paywall-anywhere-notice paywall-anywhere-notice-success">
+                            <strong><?php _e( 'WooCommerce Status:', 'paywall-anywhere' ); ?></strong>
+                            <?php _e( 'WooCommerce is active and ready for integration.', 'paywall-anywhere' ); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <table class="paywall-anywhere-form-table">
+                        <tbody>
+                            <tr>
+                                <th><?php _e( 'Enable WooCommerce', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->woocommerce_enabled_field_callback(); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php _e( 'Magic Link TTL (seconds)', 'paywall-anywhere' ); ?></th>
+                                <td>
+                                    <?php $this->magic_link_ttl_field_callback(); ?>
+                                    <div class="paywall-anywhere-validation-error" id="ttl-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <?php submit_button(); ?>
+        </form>
+        <?php
+    }
+    
+    /**
+     * Enhanced Stripe keys field with test connection
+     */
+    public function enhanced_stripe_keys_field_callback() {
+        $publishable = get_option( 'paywall_anywhere_stripe_publishable_key', '' );
+        $secret = get_option( 'paywall_anywhere_stripe_secret_key', '' );
+        $webhook = get_option( 'paywall_anywhere_stripe_webhook_secret', '' );
+        
+        ?>
+        <div class="paywall-anywhere-stripe-keys">
+            <div style="margin-bottom: 15px;">
+                <label for="stripe_publishable_key"><strong><?php _e( 'Publishable Key', 'paywall-anywhere' ); ?></strong></label>
+                <input type="text" 
+                       id="stripe_publishable_key"
+                       name="paywall_anywhere_stripe_publishable_key" 
+                       value="<?php echo esc_attr( $publishable ); ?>" 
+                       class="regular-text" 
+                       placeholder="pk_test_..." />
+                <div class="paywall-anywhere-validation-error" id="publishable-key-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="stripe_secret_key"><strong><?php _e( 'Secret Key', 'paywall-anywhere' ); ?></strong></label>
+                <input type="password" 
+                       id="stripe_secret_key"
+                       name="paywall_anywhere_stripe_secret_key" 
+                       value="<?php echo esc_attr( $secret ); ?>" 
+                       class="regular-text"
+                       placeholder="sk_test_..." />
+                <div class="paywall-anywhere-validation-error" id="secret-key-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="stripe_webhook_secret"><strong><?php _e( 'Webhook Secret', 'paywall-anywhere' ); ?></strong></label>
+                <input type="password" 
+                       id="stripe_webhook_secret"
+                       name="paywall_anywhere_stripe_webhook_secret" 
+                       value="<?php echo esc_attr( $webhook ); ?>" 
+                       class="regular-text"
+                       placeholder="whsec_..." />
+                <div class="paywall-anywhere-validation-error" id="webhook-secret-error" style="display: none; color: #dc3232; margin-top: 5px;"></div>
+            </div>
+            
+            <div>
+                <button type="button" 
+                        id="test-stripe-connection" 
+                        class="button button-secondary paywall-anywhere-test-stripe-btn"
+                        <?php echo empty( $publishable ) || empty( $secret ) ? 'disabled' : ''; ?>>
+                    <?php _e( 'Test Connection', 'paywall-anywhere' ); ?>
+                </button>
+                <div id="stripe-test-result" style="margin-top: 10px;"></div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * AJAX handler for testing Stripe connection
+     */
+    public function ajax_test_stripe_connection() {
+        // Verify nonce
+        if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'paywall_anywhere_admin_ajax' ) ) {
+            wp_die( 'Security check failed' );
+        }
+        
+        // Check capabilities
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => 'Insufficient permissions' ) );
+        }
+        
+        $publishable_key = sanitize_text_field( $_POST['publishable_key'] ?? '' );
+        $secret_key = sanitize_text_field( $_POST['secret_key'] ?? '' );
+        
+        if ( empty( $publishable_key ) || empty( $secret_key ) ) {
+            wp_send_json_error( array( 'message' => 'Both publishable and secret keys are required' ) );
+        }
+        
+        // Basic key format validation
+        if ( ! preg_match( '/^pk_(test|live)_/', $publishable_key ) ) {
+            wp_send_json_error( array( 'message' => 'Invalid publishable key format' ) );
+        }
+        
+        if ( ! preg_match( '/^sk_(test|live)_/', $secret_key ) ) {
+            wp_send_json_error( array( 'message' => 'Invalid secret key format' ) );
+        }
+        
+        // Test the connection by making a simple API call
+        $test_result = $this->test_stripe_api_connection( $secret_key );
+        
+        if ( $test_result['success'] ) {
+            wp_send_json_success( array( 
+                'message' => $test_result['message']
+            ) );
+        } else {
+            wp_send_json_error( array( 
+                'message' => $test_result['message'] 
+            ) );
+        }
+    }
+    
+    /**
+     * Test Stripe API connection
+     * 
+     * @param string $secret_key Stripe secret key
+     * @return array Result array with success status and message
+     */
+    private function test_stripe_api_connection( $secret_key ) {
+        $response = wp_remote_get( 'https://api.stripe.com/v1/account', array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $secret_key,
+                'User-Agent' => 'PaywallAnywhere/1.0.0'
+            ),
+            'timeout' => 15
+        ) );
+        
+        if ( is_wp_error( $response ) ) {
+            return array(
+                'success' => false,
+                'message' => 'Failed to connect to Stripe API: ' . $response->get_error_message()
+            );
+        }
+        
+        $response_code = wp_remote_retrieve_response_code( $response );
+        $response_body = wp_remote_retrieve_body( $response );
+        
+        if ( $response_code === 200 ) {
+            $data = json_decode( $response_body, true );
+            if ( isset( $data['email'] ) ) {
+                $environment = strpos( $secret_key, '_test_' ) !== false ? 'Test' : 'Live';
+                return array(
+                    'success' => true,
+                    'message' => sprintf( 
+                        '%s environment connected successfully. Account: %s', 
+                        $environment, 
+                        $data['email'] 
+                    )
+                );
+            }
+        }
+        
+        $error_data = json_decode( $response_body, true );
+        $error_message = 'Unknown error occurred';
+        
+        if ( isset( $error_data['error']['message'] ) ) {
+            $error_message = $error_data['error']['message'];
+        } elseif ( $response_code === 401 ) {
+            $error_message = 'Invalid API key';
+        } elseif ( $response_code === 403 ) {
+            $error_message = 'API key does not have required permissions';
+        }
+        
+        return array(
+            'success' => false,
+            'message' => $error_message
+        );
     }
 }
