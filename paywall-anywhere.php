@@ -48,12 +48,36 @@ function paywall_anywhere_autoloader( $class_name ) {
         return;
     }
     
-    $class_name = str_replace( 'Paywall_Anywhere\\', '', $class_name );
-    $class_name = str_replace( '_', '-', $class_name );
-    $class_file = PAYWALL_ANYWHERE_PLUGIN_PATH . 'includes/class-paywall-anywhere-' . strtolower( $class_name ) . '.php';
+    // Define namespace to file mapping
+    $namespace_mapping = array(
+        'Paywall_Anywhere\\Data\\Database_Manager' => 'database-manager',
+        'Paywall_Anywhere\\Data\\Access_Manager' => 'access-manager',
+        'Paywall_Anywhere\\Rendering\\Content_Filter' => 'content-filter',
+        'Paywall_Anywhere\\Blocks\\Block_Manager' => 'block-manager',
+        'Paywall_Anywhere\\Payments\\Payment_Manager' => 'payment-manager',
+        'Paywall_Anywhere\\Admin\\Admin_Interface' => 'admin-interface',
+        'Paywall_Anywhere\\Rest\\Api_Controller' => 'rest-api-controller',
+        'Paywall_Anywhere\\Activator' => 'activator',
+        'Paywall_Anywhere\\Deactivator' => 'deactivator',
+        'Paywall_Anywhere\\Plugin' => 'plugin',
+        'Paywall_Anywhere\\Paywall_Anywhere_Shortcodes' => 'shortcodes',
+    );
     
-    if ( file_exists( $class_file ) ) {
-        require_once $class_file;
+    if ( isset( $namespace_mapping[ $class_name ] ) ) {
+        $class_file = PAYWALL_ANYWHERE_PLUGIN_PATH . 'includes/class-paywall-anywhere-' . $namespace_mapping[ $class_name ] . '.php';
+        if ( file_exists( $class_file ) ) {
+            require_once $class_file;
+        }
+    } else {
+        // Fallback to original logic for other classes
+        $class_name = str_replace( 'Paywall_Anywhere\\', '', $class_name );
+        $class_name = str_replace( '_', '-', $class_name );
+        $class_name = str_replace( '\\', '-', $class_name );
+        $class_file = PAYWALL_ANYWHERE_PLUGIN_PATH . 'includes/class-paywall-anywhere-' . strtolower( $class_name ) . '.php';
+        
+        if ( file_exists( $class_file ) ) {
+            require_once $class_file;
+        }
     }
 }
 
