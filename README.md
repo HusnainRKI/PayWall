@@ -1,13 +1,17 @@
-# PayWall Premium Content
+# Paywall Anywhere
 
-A self-hosted WordPress plugin that lets site admins lock premium content until payment with granular control over posts, blocks, paragraphs, and media.
+[![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-blue.svg)](https://www.php.net/)
+[![WordPress Version](https://img.shields.io/badge/WordPress-6.5%2B-blue.svg)](https://wordpress.org/)
+[![License](https://img.shields.io/badge/License-GPLv2%20or%20later-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+
+Lock whole posts, specific blocks, single paragraphs, or media—anywhere in WordPress. Server-side, secure, Stripe & WooCommerce ready.
 
 ## Features
 
 ### ✨ Granular Content Control
-- **Whole-post paywall** - Lock entire posts behind a paywall
-- **Block-level locking** - Lock individual Gutenberg blocks (paragraphs, images, galleries, etc.)
-- **Paragraph-level locking** - Lock specific paragraphs within a block
+- **Whole-post paywall** - Lock entire posts behind a paywall with the "Lock From Here ↓" dynamic block
+- **Block-level locking** - Lock individual Gutenberg blocks (paragraphs, images, galleries, etc.) from the Inspector
+- **Paragraph-level locking** - Lock specific paragraphs within a block using toolbar actions
 - **Media protection** - Lock individual images, audio, and downloads with blurred placeholders
 
 ### 🔒 Server-Side Security
@@ -21,314 +25,192 @@ A self-hosted WordPress plugin that lets site admins lock premium content until 
 - **One-time purchases** - Pay-per-post or pay-per-section model
 - **Time-based access** - Optional expiry (7, 30, 365 days)
 
-### 🎯 User Experience
-- **Guest purchases** - Email-based purchases with magic links
-- **User account sync** - Guest purchases transfer to user accounts on login
-- **Teaser content** - Show first N paragraphs or custom teasers
-- **Cache friendly** - Compatible with popular caching plugins and CDNs
-
-### 🛠 Developer Friendly
-- **Hooks & Filters** - Extensive customization options
-- **REST API** - Full REST API for headless implementations
-- **Shortcodes** - `[pc_unlock_button]`, `[pc_premium_content]`, `[pc_teaser]`
-- **Helper functions** - `pc_is_unlocked()`, `pc_format_price()`, etc.
-
-## Requirements
-
-- WordPress 6.5+
-- PHP 8.1+
-- Gutenberg 17+
-- MySQL 5.7+ or MariaDB 10.2+
-
-## Installation
-
-1. Download the plugin ZIP file
-2. Upload to `/wp-content/plugins/` directory
-3. Activate the plugin through the 'Plugins' menu in WordPress
-4. Configure settings under 'PayWall' in the admin menu
+### 🎯 Smart Access Management
+- **Magic links** - Secure email-based access for guest users
+- **User account sync** - Automatic transfer of guest purchases to user accounts
+- **Flexible teasers** - Show first N paragraphs or custom teaser content
 
 ## Quick Start
 
-### 1. Basic Setup
-1. Go to **PayWall > Settings**
-2. Set your default currency and pricing
-3. Configure Stripe API keys (for payments)
-4. Save settings
+### Installation
 
-### 2. Lock Entire Posts
-1. Add the **"Paywall: Gate Start"** block to your post
-2. Set price and access duration in the block settings
-3. All content below the gate will be locked
+1. Upload the plugin files to `/wp-content/plugins/paywall-anywhere/`
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Configure payment providers in Settings → Paywall Anywhere
 
-### 3. Lock Individual Blocks
-1. Select any Gutenberg block (paragraph, image, etc.)
-2. In the block inspector, find **"PayWall Settings"**
-3. Toggle **"Lock this block"**
-4. Set pricing and duration
+### Basic Usage
 
-### 4. Lock Specific Paragraphs
+#### Lock Entire Posts
+Add the "Paywall: Gate Start" block where you want the paywall to begin. Everything below will be locked.
+
+#### Lock Individual Blocks
+1. Select any Gutenberg block
+2. In the Inspector panel, enable "Lock this block"
+3. Set price, currency, and expiry options
+
+#### Lock Specific Paragraphs
 1. Select text within a paragraph block
-2. Use the toolbar action **"Lock selected paragraph"**
-3. Configure pricing in the block inspector
+2. Click the lock icon in the toolbar
+3. Configure pricing in the Inspector
 
-### 5. Add Purchase Buttons
-1. Add the **"Paywall: Unlock CTA"** block
-2. Select which premium item to unlock
-3. Customize button style and text
+### Payment Setup
 
-## Gutenberg Blocks
-
-### Paywall: Gate Start
-Marks the start of premium content. Everything below this block will be locked for non-premium users.
-
-**Settings:**
-- Price (in cents)
-- Currency (USD, EUR, GBP, JPY)
-- Access duration (1-365 days)
-- Ad-free mode toggle
-- Include print/PDF routes
-
-### Paywall: Unlock CTA
-Displays a call-to-action button for purchasing premium content.
-
-**Settings:**
-- Premium item selection
-- Button style (filled/outline)
-- Alignment (left/center/right)
-- Custom button text
-
-## Shortcodes
-
-### [pc_unlock_button]
-Display an unlock button for premium content.
-
+#### Stripe Configuration
 ```php
-[pc_unlock_button item="post:123" text="Unlock Now" style="filled"]
+// Set in WordPress admin or use constants
+define( 'PAYWALL_ANYWHERE_STRIPE_PUBLISHABLE_KEY', 'pk_test_...' );
+define( 'PAYWALL_ANYWHERE_STRIPE_SECRET_KEY', 'sk_test_...' );
+define( 'PAYWALL_ANYWHERE_STRIPE_WEBHOOK_SECRET', 'whsec_...' );
 ```
 
-**Parameters:**
-- `item` - Format: "scope:selector" (e.g., "post:123", "block:abc123")
-- `text` - Custom button text
-- `style` - Button style: "filled" or "outline"
-- `class` - Additional CSS classes
-
-### [pc_premium_content]
-Wrap content that should be locked behind a paywall.
-
-```php
-[pc_premium_content price="5.00" expires="30"]
-This content is only visible to premium users.
-[/pc_premium_content]
-```
-
-**Parameters:**
-- `price` - Price in dollars (e.g., "5.00")
-- `currency` - Currency code (default: "USD")
-- `expires` - Access duration in days
-- `teaser` - Custom teaser text
-
-### [pc_teaser]
-Display teaser content for a post.
-
-```php
-[pc_teaser post_id="123" paragraphs="2" show_unlock="yes"]
-```
-
-**Parameters:**
-- `post_id` - Post ID (default: current post)
-- `paragraphs` - Number of paragraphs to show (default: 2)
-- `show_unlock` - Show unlock button ("yes"/"no")
+#### WooCommerce Integration
+1. Enable WooCommerce integration in settings
+2. Premium items automatically create Simple Products
+3. Use existing WooCommerce checkout flow
 
 ## Developer API
 
 ### Helper Functions
 
-#### pc_is_unlocked( $args )
-Check if user has access to specific content.
-
+#### Check Access
 ```php
-$has_access = pc_is_unlocked( array(
+// Check if content is unlocked
+$is_unlocked = paywall_anywhere_is_unlocked( array(
     'post_id' => 123,
+    'scope' => 'post', // or 'block', 'paragraph', 'media'
+    'selector' => '', // block clientId or paragraph index
+    'user_id' => get_current_user_id(),
+    'guest_email' => 'user@example.com'
+) );
+
+// Simplified version
+$has_access = paywall_anywhere_can_access_item( array(
+    'post_id' => get_the_ID(),
     'scope' => 'block',
-    'selector' => 'abc123'
+    'selector' => 'block-abc123'
 ) );
 ```
 
-#### pc_format_price( $price_minor, $currency )
-Format price for display.
-
+#### Format Prices
 ```php
-$formatted = pc_format_price( 500, 'USD' ); // Returns "$5.00"
+// Format price for display
+$price_display = paywall_anywhere_format_price( 500, 'USD' ); // $5.00
+$price_display = paywall_anywhere_format_price( 299, 'EUR' ); // €2.99
 ```
 
-#### pc_get_user_entitlements( $user_id )
-Get all entitlements for a user.
-
+#### Generate UI Elements
 ```php
-$entitlements = pc_get_user_entitlements( get_current_user_id() );
+// Generate unlock button
+$button_html = paywall_anywhere_get_unlock_button_html( $item_id, array(
+    'text' => 'Unlock Now',
+    'style' => 'filled', // or 'outline'
+    'class' => 'custom-class'
+) );
+
+// Generate placeholder content
+$placeholder = paywall_anywhere_get_placeholder_html( array(
+    'type' => 'content',
+    'message' => 'Premium content locked',
+    'item_id' => $item_id
+) );
 ```
 
 ### Hooks & Filters
 
 #### Actions
-- `pc_entitlement_created` - Fired when new entitlement is created
-- `pc_payment_completed` - Fired when payment is completed
-- `pc_access_granted` - Fired when access is granted to content
+- `paywall_anywhere_entitlement_created` - Fired when new entitlement is created
+- `paywall_anywhere_payment_completed` - Fired when payment is completed
+- `paywall_anywhere_access_granted` - Fired when access is granted to content
 
 #### Filters
-- `pc_can_access_item` - Filter access check results
-- `pc_placeholder_html` - Customize placeholder HTML
-- `pc_teaser_html` - Customize teaser content
-- `pc_unlock_button_html` - Customize unlock button HTML
+- `paywall_anywhere_can_access_item` - Filter access check results
+- `paywall_anywhere_placeholder_html` - Customize placeholder HTML
+- `paywall_anywhere_teaser_html` - Customize teaser content
+- `paywall_anywhere_unlock_button_html` - Customize unlock button HTML
 
 ### REST API Endpoints
 
 All endpoints require authentication and proper permissions.
 
-#### GET /wp-json/pc/v1/items
+#### GET /wp-json/paywall-anywhere/v1/items
 Get premium items.
 
 **Parameters:**
 - `post` - Filter by post ID
 
-#### POST /wp-json/pc/v1/items
+#### POST /wp-json/paywall-anywhere/v1/items
 Create a new premium item.
 
-#### GET /wp-json/pc/v1/entitlements
+#### GET /wp-json/paywall-anywhere/v1/entitlements
 Get entitlements.
 
 **Parameters:**
 - `user` - Filter by user ID
 - `email` - Filter by guest email
 
-## Admin Interface
+## Blocks
 
-### Premium Items
-View and manage all premium items across your site:
-- Post/block/paragraph breakdown
-- Pricing and currency
-- Sales statistics
-- Active/expired status
+### paywall-anywhere/gate-start
+Marks the start of premium content. Everything below this block will be locked unless explicitly marked as free.
 
-### Entitlements
-Track who has access to what:
-- User/guest email
-- Purchase date and source
-- Expiry dates
-- Export to CSV
+**Attributes:**
+- `price` - Price in minor currency units
+- `currency` - Currency code (USD, EUR, GBP, JPY)
+- `expiresDays` - Access duration in days
+- `adFree` - Whether to hide ads for premium users
 
-### Settings
-Configure global plugin settings:
-- Default pricing and currency
-- Payment gateway settings (Stripe, WooCommerce)
-- Teaser behavior
-- Cache compatibility
-- Security logging
+### paywall-anywhere/unlock-cta
+Renders unlock button(s) with payment provider choices.
 
-## Security Features
+**Attributes:**
+- `itemId` - Premium item ID
+- `providers` - Array of enabled payment providers
+- `style` - Button style (filled, outline)
 
-### Content Protection
-- Server-side filtering prevents content leakage
-- REST API endpoint protection
-- RSS feed filtering
-- Meta tag and OpenGraph filtering
-- AMP page compatibility
-- Print route protection
+## WordPress.org Review Compliance
 
-### Access Control
-- Secure token-based magic links
-- Session management for guests
-- User account synchronization
-- Automatic cleanup of expired access
+This plugin is designed to meet WordPress.org review standards:
 
-### Security Logging
-- Failed access attempts
-- Payment webhook events
-- Administrative actions
-- IP address tracking
+- **Security First**: All inputs sanitized, outputs escaped, CSRF protection on all forms
+- **No Obfuscated Code**: All code is readable and well-documented
+- **Proper Licensing**: GPL v2 or later, compatible with WordPress core
+- **No Hidden Features**: All functionality is documented and transparent
+- **Opt-in Only**: No tracking or telemetry without explicit user consent
 
-## Caching Compatibility
+## Requirements
 
-The plugin works with popular caching solutions:
+- **WordPress:** 6.5 or higher
+- **PHP:** 8.1 or higher
+- **Stripe Account:** For Stripe payments (optional)
+- **WooCommerce:** For WooCommerce integration (optional)
 
-- **WP Rocket** - Automatic cache bypass for authenticated users
-- **W3 Total Cache** - Cookie-based cache variations
-- **WP Super Cache** - Dynamic content handling
-- **Cloudflare** - Cache-Control header management
-- **CDN support** - Vary headers for proper caching
+## Installation Notes
 
-## Performance Optimization
+### For Developers
+- Set up Stripe test keys in `wp-config.php` or admin settings
+- Configure cache rules for CDN if using
+- Review security headers for media protection
 
-- **Lazy loading** - Premium items loaded on demand
-- **Database indexing** - Optimized queries for large datasets
-- **Asset optimization** - Minimal frontend footprint
-- **Cache-friendly** - Separates cached and dynamic content
-
-## Accessibility
-
-- **WCAG 2.1 AA compliant** - All UI elements meet accessibility standards
-- **Keyboard navigation** - Full keyboard support
-- **Screen reader friendly** - Proper ARIA labels and announcements
-- **Focus management** - Logical tab order and focus handling
-
-## Internationalization
-
-- **Translation ready** - All strings are translatable
-- **RTL support** - Right-to-left language support
-- **Text domain** - `paywall-premium-content`
-- **POT file included** - Easy translation workflow
-
-## Troubleshooting
-
-### Common Issues
-
-**Content still visible after locking**
-- Clear all caches (plugin, server, CDN)
-- Check user permissions (editors can preview)
-- Verify block lock settings are saved
-
-**Payment not working**
-- Check Stripe API keys in settings
-- Verify webhook endpoints are configured
-- Check payment gateway logs
-
-**Magic links not working**
-- Check email delivery (spam folder)
-- Verify token hasn't expired (24 hours default)
-- Check server timezone settings
-
-### Debug Mode
-Enable WordPress debug mode to see detailed error messages:
-
-```php
-define( 'WP_DEBUG', true );
-define( 'WP_DEBUG_LOG', true );
-```
-
-## Support
-
-- **Documentation** - [GitHub Wiki](https://github.com/HusnainRKI/PayWall/wiki)
-- **Issues** - [GitHub Issues](https://github.com/HusnainRKI/PayWall/issues)
-- **Discussions** - [GitHub Discussions](https://github.com/HusnainRKI/PayWall/discussions)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Live Keys & Manual Steps
+**TODO for deployment:**
+1. Replace placeholder URLs in plugin header
+2. Add live Stripe keys via admin or constants
+3. Configure webhook endpoints
+4. Test payment flows
+5. Set up cache vary rules for CDN
 
 ## License
 
-This project is licensed under the GPL v2 or later - see the [LICENSE](LICENSE) file for details.
+This plugin is licensed under the GPL v2 or later.
 
-## Changelog
+```
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-### v1.0.0
-- Initial release
-- Complete paywall system with granular control
-- Stripe and WooCommerce integration
-- Gutenberg block editor support
-- REST API and developer tools
-- Security and caching optimizations
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+```

@@ -1,8 +1,8 @@
 {
-  "name": "paywall-premium-content",
+  "name": "paywall-anywhere",
   "version": "1.0.0",
-  "description": "A self-hosted WordPress plugin that lets site admins lock premium content until payment",
-  "main": "paywall-premium-content.php",
+  "description": "Lock whole posts, specific blocks, single paragraphs, or media—anywhere in WordPress. Server-side, secure, Stripe & WooCommerce ready.",
+  "main": "paywall-anywhere.php",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start",
@@ -14,9 +14,10 @@
     "wordpress",
     "plugin",
     "paywall",
-    "premium-content",
+    "paywall-anywhere",
     "gutenberg",
-    "stripe"
+    "stripe",
+    "woocommerce"
   ],
   "author": "HusnainRKI",
   "license": "GPL-2.0-or-later",
