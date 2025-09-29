@@ -110,10 +110,12 @@ add_action( 'plugins_loaded', 'paywall_anywhere_init' );
 
 // Activation hook
 register_activation_hook( __FILE__, function() {
+    require_once PAYWALL_ANYWHERE_PLUGIN_PATH . 'includes/class-paywall-anywhere-activator.php';
     Paywall_Anywhere\Activator::activate();
 });
 
 // Deactivation hook
 register_deactivation_hook( __FILE__, function() {
+    require_once PAYWALL_ANYWHERE_PLUGIN_PATH . 'includes/class-paywall-anywhere-deactivator.php';
     Paywall_Anywhere\Deactivator::deactivate();
 });

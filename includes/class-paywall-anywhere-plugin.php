@@ -106,12 +106,12 @@ class Plugin {
         // Initialize managers in the correct order
         $this->db = new Data\Database_Manager();
         $this->access = new Data\Access_Manager();
-        $this->content_filter = new Rendering\Content_Filter();
-        $this->blocks = new Blocks\Block_Manager();
-        $this->payments = new Payments\Payment_Manager();
-        $this->admin = new Admin\Admin_Interface();
+        $this->content_filter = new Paywall_Anywhere_Content_Filter();
+        $this->blocks = new Paywall_Anywhere_Block_Manager();
+        $this->payments = new Paywall_Anywhere_Payment_Manager();
+        $this->admin = new Paywall_Anywhere_Admin_Interface();
         $this->shortcodes = new Paywall_Anywhere_Shortcodes();
-        $this->rest_api = new Rest\Api_Controller();
+        $this->rest_api = new Paywall_Anywhere_Rest_Api_Controller();
     }
     
     /**
