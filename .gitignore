@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+build/
+dist/
+
+# WordPress
+wp-config.php
+wp-content/uploads/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Package manager lock files (keep for consistency)
+# package-lock.json
+# yarn.lock
+
+# Testing
+coverage/
+*.test.js.snap
