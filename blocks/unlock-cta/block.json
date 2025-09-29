@@ -1,14 +1,14 @@
 {
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 3,
-    "name": "pc/unlock-cta",
+    "name": "paywall-anywhere/unlock-cta",
     "version": "1.0.0",
-    "title": "Paywall: Unlock CTA",
+    "title": "Paywall: Unlock Button",
     "category": "widgets",
     "icon": "unlock",
     "description": "Display a call-to-action button for purchasing premium content.",
     "keywords": ["paywall", "unlock", "purchase", "cta", "button"],
-    "textdomain": "paywall-premium-content",
+    "textdomain": "paywall-anywhere",
     "editorScript": "file:./index.js",
     "editorStyle": "file:./editor.css",
     "style": "file:./style.css",
@@ -17,12 +17,16 @@
             "type": "number",
             "default": 0
         },
+        "providers": {
+            "type": "array",
+            "default": ["stripe", "woocommerce"]
+        },
         "style": {
             "type": "string",
             "default": "filled",
             "enum": ["filled", "outline"]
         },
-        "customText": {
+        "text": {
             "type": "string",
             "default": ""
         },

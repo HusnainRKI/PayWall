@@ -1,14 +1,14 @@
 /**
- * PayWall Premium Content - Frontend JavaScript
+ * Paywall Anywhere - Frontend JavaScript
  */
 
 (function($) {
     'use strict';
     
     /**
-     * PayWall Frontend Handler
+     * Paywall Anywhere Frontend Handler
      */
-    var PayWallFrontend = {
+    var PaywallAnywhereFrontend = {
         
         init: function() {
             this.bindEvents();
@@ -16,14 +16,17 @@
         
         bindEvents: function() {
             // Handle unlock button clicks
-            $(document).on('click', '.pc-unlock-btn', this.handleUnlockClick.bind(this));
+            $(document).on('click', '.paywall-anywhere-unlock-btn', this.handleUnlockClick.bind(this));
             
             // Handle payment modal events
-            $(document).on('click', '.pc-payment-modal .pc-modal-close', this.closePaymentModal.bind(this));
-            $(document).on('click', '.pc-payment-modal-backdrop', this.closePaymentModal.bind(this));
+            $(document).on('click', '.paywall-anywhere-payment-modal .paywall-anywhere-modal-close', this.closePaymentModal.bind(this));
+            $(document).on('click', '.paywall-anywhere-payment-modal-backdrop', this.closePaymentModal.bind(this));
             
             // Handle payment form submission
-            $(document).on('submit', '.pc-payment-form', this.handlePaymentSubmit.bind(this));
+            $(document).on('submit', '.paywall-anywhere-payment-form', this.handlePaymentSubmit.bind(this));
+            
+            // Handle ESC key to close modal
+            $(document).on('keydown', this.handleKeydown.bind(this));
         },
         
         handleUnlockClick: function(e) {
@@ -47,21 +50,21 @@
             var self = this;
             
             $.ajax({
-                url: pc_ajax.ajax_url,
+                url: paywall_anywhere_ajax.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    action: 'pc_create_item_for_purchase',
-                    nonce: pc_ajax.nonce,
+                    action: 'paywall_anywhere_create_item_for_purchase',
+                    nonce: paywall_anywhere_ajax.nonce,
                     post_id: postId,
                     scope: scope,
                     selector: selector
                 },
                 success: function(response) {
-                    if (response.success && response.data.item_id) {
-                        self.showPaymentModal(response.data.item_id);
+                    if (response.success && response.item_id) {
+                        self.showPaymentModal(response.item_id);
                     } else {
-                        self.showError(response.data.message || 'Failed to create payment item');
+                        self.showError(response.message || 'Failed to create payment item');
                     }
                 },
                 error: function() {
@@ -73,44 +76,33 @@
         showPaymentModal: function(itemId) {
             var modalHtml = this.getPaymentModalHtml(itemId);
             $('body').append(modalHtml);
-            $('.pc-payment-modal').fadeIn(200);
-            $('body').addClass('pc-modal-open');
+            $('.paywall-anywhere-payment-modal').fadeIn(200);
+            $('body').addClass('paywall-anywhere-modal-open');
             
             // Focus management for accessibility
-            $('.pc-payment-modal .pc-email-input').focus();
-        },
-        
-        closePaymentModal: function(e) {
-            if (e) {
-                e.preventDefault();
-            }
-            
-            $('.pc-payment-modal').fadeOut(200, function() {
-                $(this).remove();
-            });
-            $('body').removeClass('pc-modal-open');
+            $('.paywall-anywhere-payment-modal .paywall-anywhere-email-input').focus();
         },
         
         getPaymentModalHtml: function(itemId) {
             return `
-                <div class="pc-payment-modal">
-                    <div class="pc-payment-modal-backdrop"></div>
-                    <div class="pc-payment-modal-content">
-                        <div class="pc-payment-modal-header">
-                            <h3>Unlock Premium Content</h3>
-                            <button class="pc-modal-close" aria-label="Close">×</button>
+                <div class="paywall-anywhere-payment-modal" role="dialog" aria-labelledby="paywall-anywhere-modal-title" aria-describedby="paywall-anywhere-modal-description">
+                    <div class="paywall-anywhere-payment-modal-backdrop"></div>
+                    <div class="paywall-anywhere-modal-content">
+                        <div class="paywall-anywhere-modal-header">
+                            <h2 id="paywall-anywhere-modal-title">${paywall_anywhere_ajax.strings.unlock_content || 'Unlock Content'}</h2>
+                            <button class="paywall-anywhere-modal-close" aria-label="${paywall_anywhere_ajax.strings.close || 'Close'}">&times;</button>
                         </div>
-                        <div class="pc-payment-modal-body">
-                            <form class="pc-payment-form" data-item-id="${itemId}">
-                                <div class="pc-form-group">
-                                    <label for="pc-email">Email Address</label>
-                                    <input type="email" id="pc-email" name="email" class="pc-email-input" required>
-                                    <small>You'll receive a magic link to access the content</small>
+                        <div class="paywall-anywhere-modal-body">
+                            <p id="paywall-anywhere-modal-description">${paywall_anywhere_ajax.strings.payment_description || 'Enter your email address to unlock this premium content.'}</p>
+                            <form class="paywall-anywhere-payment-form" data-item-id="${itemId}">
+                                <div class="paywall-anywhere-form-group">
+                                    <label for="paywall-anywhere-email">${paywall_anywhere_ajax.strings.email_address || 'Email Address'}</label>
+                                    <input type="email" id="paywall-anywhere-email" class="paywall-anywhere-email-input" required>
                                 </div>
-                                <div class="pc-form-actions">
-                                    <button type="submit" class="pc-pay-btn">
-                                        <span class="pc-btn-text">Continue to Payment</span>
-                                        <span class="pc-btn-loader" style="display: none;">Processing...</span>
+                                <div class="paywall-anywhere-form-actions">
+                                    <button type="submit" class="paywall-anywhere-btn paywall-anywhere-btn-primary">
+                                        <span class="paywall-anywhere-btn-text">${paywall_anywhere_ajax.strings.proceed_to_payment || 'Proceed to Payment'}</span>
+                                        <span class="paywall-anywhere-spinner" style="display: none;"></span>
                                     </button>
                                 </div>
                             </form>
@@ -124,92 +116,148 @@
             e.preventDefault();
             
             var $form = $(e.target);
-            var $button = $form.find('.pc-pay-btn');
+            var $button = $form.find('button[type="submit"]');
+            var $spinner = $button.find('.paywall-anywhere-spinner');
+            var $buttonText = $button.find('.paywall-anywhere-btn-text');
+            
             var itemId = $form.data('item-id');
-            var email = $form.find('input[name="email"]').val();
+            var email = $form.find('.paywall-anywhere-email-input').val();
             
             if (!email || !itemId) {
-                this.showError('Please enter a valid email address');
+                this.showError('Please provide a valid email address');
                 return;
             }
             
-            this.setButtonLoading($button, true);
+            // Show loading state
+            $button.prop('disabled', true);
+            $spinner.show();
+            $buttonText.text(paywall_anywhere_ajax.strings.processing || 'Processing...');
+            
+            var self = this;
             
             $.ajax({
-                url: pc_ajax.ajax_url,
+                url: paywall_anywhere_ajax.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    action: 'pc_create_payment',
-                    nonce: pc_ajax.nonce,
+                    action: 'paywall_anywhere_create_payment',
+                    nonce: paywall_anywhere_ajax.nonce,
                     item_id: itemId,
                     email: email
                 },
                 success: function(response) {
                     if (response.success && response.checkout_url) {
+                        // Redirect to payment provider
                         window.location.href = response.checkout_url;
                     } else {
-                        this.showError(response.error || 'Payment initialization failed');
-                        this.setButtonLoading($button, false);
+                        self.showError(response.message || 'Payment setup failed');
+                        self.resetPaymentButton($button, $spinner, $buttonText);
                     }
-                }.bind(this),
+                },
                 error: function() {
-                    this.showError('Network error occurred');
-                    this.setButtonLoading($button, false);
-                }.bind(this)
+                    self.showError('Network error occurred');
+                    self.resetPaymentButton($button, $spinner, $buttonText);
+                }
             });
         },
         
-        setButtonLoading: function($button, loading) {
-            if (loading) {
-                $button.prop('disabled', true);
-                $button.find('.pc-btn-text').hide();
-                $button.find('.pc-btn-loader').show();
-            } else {
-                $button.prop('disabled', false);
-                $button.find('.pc-btn-text').show();
-                $button.find('.pc-btn-loader').hide();
+        resetPaymentButton: function($button, $spinner, $buttonText) {
+            $button.prop('disabled', false);
+            $spinner.hide();
+            $buttonText.text(paywall_anywhere_ajax.strings.proceed_to_payment || 'Proceed to Payment');
+        },
+        
+        closePaymentModal: function(e) {
+            if (e) {
+                e.preventDefault();
+            }
+            
+            $('.paywall-anywhere-payment-modal').fadeOut(200, function() {
+                $(this).remove();
+            });
+            $('body').removeClass('paywall-anywhere-modal-open');
+        },
+        
+        handleKeydown: function(e) {
+            // Close modal on ESC key
+            if (e.keyCode === 27 && $('.paywall-anywhere-payment-modal').is(':visible')) {
+                this.closePaymentModal();
             }
         },
         
         showError: function(message) {
-            // Create or update error notification
-            var $error = $('.pc-error-notice');
+            // Remove existing error messages
+            $('.paywall-anywhere-error-message').remove();
             
-            if ($error.length === 0) {
-                $error = $('<div class="pc-error-notice"></div>');
-                $('body').append($error);
-            }
+            var errorHtml = `
+                <div class="paywall-anywhere-error-message" role="alert">
+                    <p>${message}</p>
+                    <button class="paywall-anywhere-error-close" aria-label="${paywall_anywhere_ajax.strings.close || 'Close'}">&times;</button>
+                </div>
+            `;
             
-            $error.text(message).fadeIn(200);
+            $('body').append(errorHtml);
             
-            // Auto-hide after 5 seconds
+            // Auto-hide error after 5 seconds
             setTimeout(function() {
-                $error.fadeOut(200);
+                $('.paywall-anywhere-error-message').fadeOut(300, function() {
+                    $(this).remove();
+                });
             }, 5000);
-        },
-        
-        showSuccess: function(message) {
-            // Create or update success notification
-            var $success = $('.pc-success-notice');
             
-            if ($success.length === 0) {
-                $success = $('<div class="pc-success-notice"></div>');
-                $('body').append($success);
-            }
-            
-            $success.text(message).fadeIn(200);
-            
-            // Auto-hide after 3 seconds
-            setTimeout(function() {
-                $success.fadeOut(200);
-            }, 3000);
+            // Manual close handler
+            $(document).on('click', '.paywall-anywhere-error-close', function() {
+                $(this).closest('.paywall-anywhere-error-message').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
         }
     };
     
-    // Initialize when document is ready
+    /**
+     * Initialize when DOM is ready
+     */
     $(document).ready(function() {
-        PayWallFrontend.init();
+        PaywallAnywhereFrontend.init();
+    });
+    
+    /**
+     * Handle magic link success parameters
+     */
+    $(document).ready(function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('paywall_anywhere_success') === '1') {
+            // Show success message
+            var successHtml = `
+                <div class="paywall-anywhere-success-message" role="alert">
+                    <p>${paywall_anywhere_ajax.strings.payment_success || 'Payment successful! You now have access to this content.'}</p>
+                    <button class="paywall-anywhere-success-close" aria-label="${paywall_anywhere_ajax.strings.close || 'Close'}">&times;</button>
+                </div>
+            `;
+            
+            $('body').append(successHtml);
+            
+            // Auto-hide success message after 10 seconds
+            setTimeout(function() {
+                $('.paywall-anywhere-success-message').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 10000);
+            
+            // Manual close handler
+            $(document).on('click', '.paywall-anywhere-success-close', function() {
+                $(this).closest('.paywall-anywhere-success-message').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
+            
+            // Clean up URL
+            if (history.replaceState) {
+                var cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                history.replaceState({}, document.title, cleanUrl);
+            }
+        }
     });
     
 })(jQuery);

@@ -1,354 +1,445 @@
 /**
- * PayWall Premium Content - Admin Styles
+ * Paywall Anywhere - Admin Styles
  */
 
-/* Payment modal styles for frontend */
-.pc-payment-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 100000;
-    display: none;
-}
-
-.pc-payment-modal-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-}
-
-.pc-payment-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow: auto;
-}
-
-.pc-payment-modal-header {
-    padding: 1.5rem 1.5rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.pc-payment-modal-header h3 {
-    margin: 0;
-    font-size: 1.4rem;
-    color: #333;
-}
-
-.pc-modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-}
-
-.pc-modal-close:hover {
-    color: #333;
-}
-
-.pc-payment-modal-body {
-    padding: 1.5rem;
-}
-
-.pc-form-group {
-    margin-bottom: 1.5rem;
-}
-
-.pc-form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #333;
-}
-
-.pc-form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.pc-form-group input:focus {
-    outline: none;
-    border-color: #0073aa;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
-}
-
-.pc-form-group small {
-    display: block;
-    margin-top: 0.5rem;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.pc-form-actions {
-    text-align: right;
-}
-
-.pc-pay-btn {
-    background: #0073aa;
+/* Admin Page Styles */
+.paywall-anywhere-admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    position: relative;
+    padding: 2rem;
+    margin: 0 -20px 20px -22px;
+    border-radius: 0 0 8px 8px;
 }
 
-.pc-pay-btn:hover:not(:disabled) {
-    background: #005a87;
-}
-
-.pc-pay-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.pc-btn-loader {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* Modal open state */
-body.pc-modal-open {
-    overflow: hidden;
-}
-
-/* Error and success notices */
-.pc-error-notice,
-.pc-success-notice {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 1rem 1.5rem;
-    border-radius: 4px;
+.paywall-anywhere-admin-header h1 {
     color: white;
-    font-weight: 500;
-    z-index: 100001;
-    display: none;
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
 }
 
-.pc-error-notice {
-    background: #dc3545;
-}
-
-.pc-success-notice {
-    background: #28a745;
-}
-
-/* Admin interface styles */
-.pc-admin-header {
-    background: white;
-    padding: 1rem 0;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 1.5rem;
-}
-
-.pc-admin-header h1 {
+.paywall-anywhere-admin-header p {
     margin: 0;
-    color: #333;
+    opacity: 0.9;
+    font-size: 1.1rem;
 }
 
-.pc-admin-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #ddd;
-}
-
-.pc-admin-tab {
-    padding: 0.75rem 1.5rem;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    color: #666;
-    font-size: 1rem;
-    text-decoration: none;
-}
-
-.pc-admin-tab:hover {
-    color: #333;
-}
-
-.pc-admin-tab.active {
-    color: #0073aa;
-    border-bottom-color: #0073aa;
-}
-
-.pc-admin-content {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.pc-data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-}
-
-.pc-data-table th,
-.pc-data-table td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.pc-data-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #333;
-}
-
-.pc-data-table tr:hover {
-    background: #f8f9fa;
-}
-
-.pc-status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
+/* Status Indicators */
+.paywall-anywhere-status {
+    padding: 4px 8px;
     border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.pc-status-active {
+.paywall-anywhere-status-active {
     background: #d4edda;
     color: #155724;
 }
 
-.pc-status-expired {
+.paywall-anywhere-status-archived {
     background: #f8d7da;
     color: #721c24;
 }
 
-.pc-action-btn {
-    background: none;
-    border: 1px solid #ddd;
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    color: #666;
-    text-decoration: none;
-    display: inline-block;
-    margin-right: 0.5rem;
-}
-
-.pc-action-btn:hover {
-    border-color: #bbb;
-    color: #333;
-}
-
-.pc-action-btn--danger:hover {
-    border-color: #dc3545;
-    color: #dc3545;
-}
-
-/* Block editor integration styles */
-.pc-lock-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: #f8f9fa;
+/* Settings Page */
+.paywall-anywhere-settings-section {
+    background: white;
+    border: 1px solid #ccd0d4;
     border-radius: 4px;
+    margin-bottom: 20px;
 }
 
-.pc-lock-toggle {
-    margin-right: 0.5rem;
+.paywall-anywhere-settings-section h3 {
+    background: #f1f1f1;
+    margin: 0;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ccd0d4;
+    font-size: 14px;
+    font-weight: 600;
 }
 
-.pc-lock-settings {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+.paywall-anywhere-settings-content {
+    padding: 20px;
 }
 
-.pc-lock-field {
-    display: flex;
-    flex-direction: column;
-    min-width: 80px;
+/* Form Elements */
+.paywall-anywhere-form-table {
+    width: 100%;
 }
 
-.pc-lock-field label {
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
+.paywall-anywhere-form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+    vertical-align: top;
+    font-weight: 600;
+}
+
+.paywall-anywhere-form-table td {
+    padding: 20px 0;
+}
+
+.paywall-anywhere-form-table input[type="text"],
+.paywall-anywhere-form-table input[type="password"],
+.paywall-anywhere-form-table input[type="email"],
+.paywall-anywhere-form-table input[type="number"],
+.paywall-anywhere-form-table select,
+.paywall-anywhere-form-table textarea {
+    width: 300px;
+    max-width: 100%;
+}
+
+.paywall-anywhere-form-table .description {
     color: #666;
+    font-style: italic;
+    margin-top: 5px;
 }
 
-.pc-lock-field input,
-.pc-lock-field select {
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    font-size: 0.85rem;
+/* Cards */
+.paywall-anywhere-card {
+    background: white;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
-.pc-locked-indicator {
-    display: inline-flex;
+.paywall-anywhere-card h3 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.paywall-anywhere-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Stats Dashboard */
+.paywall-anywhere-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.paywall-anywhere-stat-card {
+    background: white;
+    border: 1px solid #ccd0d4;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.paywall-anywhere-stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    margin: 0;
+}
+
+.paywall-anywhere-stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 5px 0 0 0;
+}
+
+/* Tables */
+.paywall-anywhere-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.paywall-anywhere-table th,
+.paywall-anywhere-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.paywall-anywhere-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.paywall-anywhere-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Buttons */
+.paywall-anywhere-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 5px 0 0;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+}
+
+.paywall-anywhere-btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.paywall-anywhere-btn-primary:hover {
+    background: #5a67d8;
+    color: white;
+}
+
+.paywall-anywhere-btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.paywall-anywhere-btn-secondary:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.paywall-anywhere-btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.paywall-anywhere-btn-danger:hover {
+    background: #c82333;
+    color: white;
+}
+
+.paywall-anywhere-btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+/* Notices */
+.paywall-anywhere-notice {
+    padding: 12px 15px;
+    margin: 20px 0;
+    border-left: 4px solid #007cba;
+    background: #f7f7f7;
+    border-radius: 0 4px 4px 0;
+}
+
+.paywall-anywhere-notice-success {
+    border-left-color: #46b450;
+    background: #ecf7ed;
+}
+
+.paywall-anywhere-notice-warning {
+    border-left-color: #ffb900;
+    background: #fff8e5;
+}
+
+.paywall-anywhere-notice-error {
+    border-left-color: #dc3232;
+    background: #fbeaea;
+}
+
+/* Progress Bars */
+.paywall-anywhere-progress {
+    width: 100%;
+    height: 20px;
+    background: #f1f1f1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.paywall-anywhere-progress-bar {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+/* Loading States */
+.paywall-anywhere-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.paywall-anywhere-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #667eea;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: paywall-anywhere-spin 1s linear infinite;
+}
+
+@keyframes paywall-anywhere-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Editor Integration */
+.paywall-anywhere-locked-block {
+    position: relative;
+}
+
+.paywall-anywhere-locked-overlay {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 10;
+    display: flex;
     align-items: center;
-    gap: 0.25rem;
-    background: #fff3cd;
-    color: #856404;
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    gap: 4px;
 }
 
-/* Responsive design */
+.paywall-anywhere-lock-icon {
+    font-size: 12px;
+}
+
+/* Block Editor Styles */
+.paywall-anywhere-gate-start {
+    border: 2px dashed #667eea;
+    border-radius: 8px;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.paywall-anywhere-gate-preview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.paywall-anywhere-gate-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.paywall-anywhere-gate-preview h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+}
+
+.paywall-anywhere-gate-preview p {
+    margin: 0 0 1rem 0;
+    opacity: 0.9;
+}
+
+.paywall-anywhere-gate-price {
+    font-size: 1.3rem;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* CTA Block */
+.paywall-anywhere-unlock-cta {
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+    background: #f9f9f9;
+}
+
+.paywall-anywhere-cta-preview button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Help Text */
+.paywall-anywhere-help {
+    background: #f1f1f1;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.paywall-anywhere-help h4 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.paywall-anywhere-help p {
+    margin-bottom: 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .pc-payment-modal-content {
-        width: 95%;
-        margin: 1rem;
+    .paywall-anywhere-admin-header {
+        margin: 0 -10px 20px -12px;
+        padding: 1.5rem;
     }
     
-    .pc-admin-tabs {
-        flex-direction: column;
+    .paywall-anywhere-card-grid,
+    .paywall-anywhere-stats-grid {
+        grid-template-columns: 1fr;
     }
     
-    .pc-lock-settings {
-        flex-direction: column;
+    .paywall-anywhere-form-table th,
+    .paywall-anywhere-form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
     }
     
-    .pc-data-table {
-        font-size: 0.9rem;
+    .paywall-anywhere-form-table th {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .paywall-anywhere-card,
+    .paywall-anywhere-settings-section {
+        background: #1e1e1e;
+        border-color: #444;
+        color: #e0e0e0;
     }
     
-    .pc-data-table th,
-    .pc-data-table td {
-        padding: 0.5rem;
+    .paywall-anywhere-settings-section h3 {
+        background: #2a2a2a;
+        color: #e0e0e0;
+    }
+    
+    .paywall-anywhere-table {
+        background: #1e1e1e;
+        color: #e0e0e0;
+    }
+    
+    .paywall-anywhere-table th {
+        background: #2a2a2a;
+        color: #e0e0e0;
+    }
+    
+    .paywall-anywhere-table tbody tr:hover {
+        background: #2a2a2a;
     }
 }
