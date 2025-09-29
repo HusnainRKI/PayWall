@@ -185,11 +185,15 @@ class Plugin {
         
         // Enqueue editor scripts for Gutenberg integration
         if ( $hook === 'post.php' || $hook === 'post-new.php' ) {
+            // Use built editor script with proper dependencies
+            $editor_asset_file = PAYWALL_ANYWHERE_PLUGIN_PATH . 'build/editor.asset.php';
+            $editor_asset = include $editor_asset_file;
+            
             wp_enqueue_script( 
                 'paywall-anywhere-editor', 
-                PAYWALL_ANYWHERE_PLUGIN_URL . 'assets/js/editor.js', 
-                array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor', 'wp-components', 'wp-data' ), 
-                PAYWALL_ANYWHERE_VERSION, 
+                PAYWALL_ANYWHERE_PLUGIN_URL . 'build/editor.js', 
+                $editor_asset['dependencies'], 
+                $editor_asset['version'], 
                 true 
             );
             
