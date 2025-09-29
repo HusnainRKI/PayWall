@@ -385,6 +385,99 @@
     text-align: center;
 }
 
+/* Shortcode Lock Styles */
+.paywall-anywhere-locked-shortcode {
+    position: relative;
+    border: 2px dashed #667eea;
+    border-radius: 8px;
+    background: rgba(102, 126, 234, 0.05);
+    margin: 1rem 0;
+    overflow: hidden;
+}
+
+.paywall-anywhere-lock-overlay {
+    padding: 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(2px);
+}
+
+.paywall-anywhere-lock-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.paywall-anywhere-lock-content .paywall-anywhere-lock-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+    display: block;
+}
+
+.paywall-anywhere-lock-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.paywall-anywhere-lock-content p {
+    margin: 0 0 1.5rem 0;
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.paywall-anywhere-shortcode-teaser {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #495057;
+    font-style: italic;
+}
+
+.paywall-anywhere-shortcode-teaser p {
+    margin: 0 !important;
+    color: #495057 !important;
+}
+
+/* Unlocked Shortcode Content */
+.paywall-anywhere-unlocked-content {
+    position: relative;
+    background: rgba(212, 237, 218, 0.1);
+    border-left: 4px solid #28a745;
+    border-radius: 0 4px 4px 0;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.paywall-anywhere-unlocked-content::before {
+    content: "🔓";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1rem;
+    opacity: 0.6;
+}
+
+/* Enhanced Lock Animation */
+.paywall-anywhere-locked-shortcode {
+    animation: paywall-anywhere-lock-pulse 2s ease-in-out infinite;
+}
+
+@keyframes paywall-anywhere-lock-pulse {
+    0%, 100% {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+    }
+    50% {
+        border-color: #5a67d8;
+        background: rgba(102, 126, 234, 0.08);
+    }
+}
+
 /* Modal Open State */
 body.paywall-anywhere-modal-open {
     overflow: hidden;

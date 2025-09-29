@@ -23,6 +23,50 @@
     font-size: 1.1rem;
 }
 
+/* Enhanced Tab Styles */
+.paywall-anywhere-tab-content {
+    background: white;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    padding: 0;
+    margin-top: 0;
+}
+
+.nav-tab-wrapper {
+    border-bottom: 1px solid #ccd0d4;
+    margin-bottom: 0;
+}
+
+.nav-tab {
+    position: relative;
+    background: #f1f1f1;
+    border: 1px solid #ccd0d4;
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+    background: #fafafa;
+    color: #23282d;
+}
+
+.nav-tab-active {
+    background: white;
+    border-bottom-color: white;
+    color: #23282d;
+    font-weight: 600;
+}
+
+.nav-tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #667eea;
+}
+
 /* Status Indicators */
 .paywall-anywhere-status {
     padding: 4px 8px;
@@ -42,41 +86,55 @@
     color: #721c24;
 }
 
-/* Settings Page */
+/* Enhanced Settings Sections */
 .paywall-anywhere-settings-section {
     background: white;
     border: 1px solid #ccd0d4;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    border-radius: 0;
+    margin-bottom: 0;
+    border-left: none;
+    border-right: none;
+}
+
+.paywall-anywhere-settings-section:first-child {
+    border-top: none;
+}
+
+.paywall-anywhere-settings-section:last-child {
+    border-bottom: none;
 }
 
 .paywall-anywhere-settings-section h3 {
-    background: #f1f1f1;
+    background: #f8f9fa;
     margin: 0;
-    padding: 15px 20px;
-    border-bottom: 1px solid #ccd0d4;
+    padding: 15px 25px;
+    border-bottom: 1px solid #e1e5e9;
     font-size: 14px;
     font-weight: 600;
+    color: #495057;
 }
 
 .paywall-anywhere-settings-content {
-    padding: 20px;
+    padding: 25px;
 }
 
-/* Form Elements */
+/* Enhanced Form Elements */
 .paywall-anywhere-form-table {
     width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .paywall-anywhere-form-table th {
     width: 200px;
-    padding: 20px 10px 20px 0;
+    padding: 15px 20px 15px 0;
     vertical-align: top;
     font-weight: 600;
+    color: #23282d;
 }
 
 .paywall-anywhere-form-table td {
-    padding: 20px 0;
+    padding: 15px 0;
 }
 
 .paywall-anywhere-form-table input[type="text"],
@@ -85,14 +143,77 @@
 .paywall-anywhere-form-table input[type="number"],
 .paywall-anywhere-form-table select,
 .paywall-anywhere-form-table textarea {
-    width: 300px;
+    width: 350px;
     max-width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.paywall-anywhere-form-table input[type="text"]:focus,
+.paywall-anywhere-form-table input[type="password"]:focus,
+.paywall-anywhere-form-table input[type="email"]:focus,
+.paywall-anywhere-form-table input[type="number"]:focus,
+.paywall-anywhere-form-table select:focus,
+.paywall-anywhere-form-table textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 1px #667eea;
+    outline: none;
 }
 
 .paywall-anywhere-form-table .description {
     color: #666;
     font-style: italic;
     margin-top: 5px;
+    font-size: 13px;
+}
+
+/* Enhanced Stripe Keys Section */
+.paywall-anywhere-stripe-keys {
+    max-width: 500px;
+}
+
+.paywall-anywhere-stripe-keys label {
+    display: block;
+    margin-bottom: 5px;
+    color: #23282d;
+    font-size: 13px;
+}
+
+.paywall-anywhere-test-stripe-btn {
+    background: #667eea !important;
+    border-color: #667eea !important;
+    color: white !important;
+    transition: all 0.2s ease;
+}
+
+.paywall-anywhere-test-stripe-btn:hover:not(:disabled) {
+    background: #5a67d8 !important;
+    border-color: #5a67d8 !important;
+}
+
+.paywall-anywhere-test-stripe-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Enhanced Validation Styles */
+.paywall-anywhere-validation-error {
+    display: none;
+    color: #dc3232;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 5px 8px;
+    background: #fbeaea;
+    border: 1px solid #f5c6cb;
+    border-radius: 3px;
+}
+
+.paywall-anywhere-field-invalid {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 1px #dc3232 !important;
 }
 
 /* Cards */
@@ -221,28 +342,32 @@
     font-size: 11px;
 }
 
-/* Notices */
+/* Enhanced Notices */
 .paywall-anywhere-notice {
     padding: 12px 15px;
-    margin: 20px 0;
+    margin: 15px 0;
     border-left: 4px solid #007cba;
     background: #f7f7f7;
     border-radius: 0 4px 4px 0;
+    font-size: 13px;
 }
 
 .paywall-anywhere-notice-success {
     border-left-color: #46b450;
     background: #ecf7ed;
+    color: #155724;
 }
 
 .paywall-anywhere-notice-warning {
     border-left-color: #ffb900;
     background: #fff8e5;
+    color: #856404;
 }
 
 .paywall-anywhere-notice-error {
     border-left-color: #dc3232;
     background: #fbeaea;
+    color: #721c24;
 }
 
 /* Progress Bars */
@@ -412,6 +537,15 @@
     .paywall-anywhere-form-table th {
         font-weight: 600;
         margin-bottom: 5px;
+    }
+    
+    .paywall-anywhere-form-table input[type="text"],
+    .paywall-anywhere-form-table input[type="password"],
+    .paywall-anywhere-form-table input[type="email"],
+    .paywall-anywhere-form-table input[type="number"],
+    .paywall-anywhere-form-table select,
+    .paywall-anywhere-form-table textarea {
+        width: 100%;
     }
 }
 

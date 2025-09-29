@@ -23,6 +23,7 @@ class Paywall_Anywhere_Shortcodes {
         add_shortcode( 'paywall_anywhere_unlock_button', array( $this, 'unlock_button_shortcode' ) );
         add_shortcode( 'paywall_anywhere_premium_content', array( $this, 'premium_content_shortcode' ) );
         add_shortcode( 'paywall_anywhere_teaser', array( $this, 'teaser_shortcode' ) );
+        add_shortcode( 'paywall_anywhere_lock', array( $this, 'lock_shortcode' ) );
     }
     
     /**
@@ -227,5 +228,169 @@ class Paywall_Anywhere_Shortcodes {
         $teaser = apply_filters( 'paywall_anywhere_teaser_html', $teaser, $post_id, $atts );
         
         return '<div class="paywall-anywhere-teaser">' . $teaser . $more_link . '</div>';
+    }
+    
+    /**
+     * Lock shortcode - locks content until payment
+     *
+     * @param array  $atts    Shortcode attributes.
+     * @param string $content Shortcode content.
+     * @return string
+     */
+    public function lock_shortcode( $atts, $content = '' ) {
+        $atts = shortcode_atts( array(
+            'price' => '', // In cents, will use default if not specified
+            'expires_days' => '', // Days until expiry, will use default if not specified
+            'currency' => '', // Will use default if not specified
+            'teaser' => '' // Optional teaser text to show instead of content
+        ), $atts, 'paywall_anywhere_lock' );
+        
+        // If no content, return empty
+        if ( empty( $content ) ) {
+            return '';
+        }
+        
+        $post_id = get_the_ID();
+        if ( ! $post_id ) {
+            // Outside of post context, return content as-is
+            return do_shortcode( $content );
+        }
+        
+        // Get default values from settings
+        $default_price = get_option( 'paywall_anywhere_default_price', 500 );
+        $default_currency = get_option( 'paywall_anywhere_default_currency', 'USD' );
+        $default_expires = get_option( 'paywall_anywhere_default_expires_days', 30 );
+        
+        // Use provided values or defaults
+        $price_minor = ! empty( $atts['price'] ) ? absint( $atts['price'] ) : $default_price;
+        $currency = ! empty( $atts['currency'] ) ? sanitize_text_field( $atts['currency'] ) : $default_currency;
+        $expires_days = ! empty( $atts['expires_days'] ) ? absint( $atts['expires_days'] ) : $default_expires;
+        
+        // Convert 0 expiry to null (never expires)
+        if ( $expires_days === 0 ) {
+            $expires_days = null;
+        }
+        
+        // Create unique selector for this shortcode instance
+        $selector = 'shortcode_lock_' . md5( serialize( $atts ) . $content );
+        
+        // Find or create the item
+        $db = Plugin::instance()->db;
+        $existing_items = $db->get_items_by_post( $post_id );
+        $item = null;
+        
+        // Look for existing item with this selector
+        foreach ( $existing_items as $existing_item ) {
+            if ( $existing_item->selector === $selector ) {
+                $item = $existing_item;
+                break;
+            }
+        }
+        
+        // Create item if it doesn't exist
+        if ( ! $item ) {
+            $item_id = $db->create_item( array(
+                'post_id' => $post_id,
+                'scope' => 'block',
+                'selector' => $selector,
+                'price_minor' => $price_minor,
+                'currency' => $currency,
+                'expires_days' => $expires_days,
+                'status' => 'active'
+            ) );
+            
+            if ( $item_id ) {
+                $item = $db->get_item( $item_id );
+            }
+        }
+        
+        if ( ! $item ) {
+            // Fallback: return content if item creation failed
+            return do_shortcode( $content );
+        }
+        
+        // Check if current user has access
+        $access_manager = Plugin::instance()->access;
+        $user_id = get_current_user_id();
+        
+        // Also check for guest access via cookies/session
+        $has_access = false;
+        if ( $user_id ) {
+            $has_access = $access_manager->has_access( $user_id, $item->id );
+        } else {
+            // Check guest access
+            $has_access = $access_manager->has_guest_access( $item->id );
+        }
+        
+        if ( $has_access ) {
+            // User has access, return unlocked content
+            return '<div class="paywall-anywhere-unlocked-content" data-item-id="' . esc_attr( $item->id ) . '">' . 
+                   do_shortcode( $content ) . 
+                   '</div>';
+        }
+        
+        // User doesn't have access, show locked state
+        $teaser_content = '';
+        if ( ! empty( $atts['teaser'] ) ) {
+            $teaser_content = '<div class="paywall-anywhere-shortcode-teaser">' . 
+                             wp_kses_post( $atts['teaser'] ) . 
+                             '</div>';
+        }
+        
+        // Generate unlock button
+        $unlock_button = $this->generate_unlock_button_html( $item );
+        
+        // Return locked content placeholder
+        return '<div class="paywall-anywhere-locked-shortcode" data-item-id="' . esc_attr( $item->id ) . '">' .
+               '<div class="paywall-anywhere-lock-overlay">' .
+               '<div class="paywall-anywhere-lock-content">' .
+               '<div class="paywall-anywhere-lock-icon">🔒</div>' .
+               '<h4>' . __( 'Premium Content Locked', 'paywall-anywhere' ) . '</h4>' .
+               '<p>' . sprintf( 
+                   __( 'Unlock this content for %s', 'paywall-anywhere' ), 
+                   $this->format_price( $item->price_minor, $item->currency )
+               ) . '</p>' .
+               $teaser_content .
+               $unlock_button .
+               '</div>' .
+               '</div>' .
+               '</div>';
+    }
+    
+    /**
+     * Generate unlock button HTML
+     *
+     * @param object $item Premium item object
+     * @return string
+     */
+    private function generate_unlock_button_html( $item ) {
+        $button_text = sprintf( 
+            __( 'Unlock for %s', 'paywall-anywhere' ), 
+            $this->format_price( $item->price_minor, $item->currency )
+        );
+        
+        return '<button type="button" ' .
+               'class="paywall-anywhere-unlock-btn button button-primary" ' .
+               'data-item-id="' . esc_attr( $item->id ) . '">' .
+               esc_html( $button_text ) .
+               '</button>';
+    }
+    
+    /**
+     * Format price for display
+     *
+     * @param int    $price_minor Price in minor units (cents)
+     * @param string $currency    Currency code
+     * @return string
+     */
+    private function format_price( $price_minor, $currency ) {
+        if ( function_exists( 'paywall_anywhere_format_price' ) ) {
+            return paywall_anywhere_format_price( $price_minor, $currency );
+        }
+        
+        // Fallback formatting
+        $price = $price_minor / 100;
+        $symbol = $currency === 'USD' ? '$' : $currency . ' ';
+        return $symbol . number_format( $price, 2 );
     }
 }

@@ -35,7 +35,7 @@ function current_user_can($capability) { return false; }
 function get_current_user_id() { return 0; }
 
 // Define plugin constants for testing
-define('PC_PLUGIN_FILE', dirname(__DIR__) . '/paywall-premium-content.php');
+define('PC_PLUGIN_FILE', dirname(__DIR__) . '/paywall-anywhere.php');
 define('PC_PLUGIN_PATH', dirname(__DIR__) . '/');
 define('PC_PLUGIN_URL', 'http://example.com/wp-content/plugins/paywall/');
 define('PC_VERSION', '1.0.0');
@@ -84,15 +84,15 @@ class PayWallPluginTest {
         require_once PC_PLUGIN_FILE;
         
         $this->test("Autoloader function exists", function() {
-            return function_exists('pc_autoloader');
+            return function_exists('paywall_anywhere_autoloader');
         });
         
         $this->test("Helper functions loaded", function() {
-            return file_exists(PC_PLUGIN_PATH . 'includes/helper-functions.php');
+            return file_exists(PC_PLUGIN_PATH . 'includes/functions-paywall-anywhere-helpers.php');
         });
         
         $this->test("Plugin class file exists", function() {
-            return file_exists(PC_PLUGIN_PATH . 'includes/class-plugin.php');
+            return file_exists(PC_PLUGIN_PATH . 'includes/class-paywall-anywhere-plugin.php');
         });
     }
     
@@ -107,18 +107,18 @@ class PayWallPluginTest {
         });
         
         if (function_exists('pc_format_price')) {
-            $this->test("pc_format_price formats USD correctly", function() {
-                return pc_format_price(500, 'USD') === '$5.00';
+            $this->test("paywall_anywhere_format_price formats USD correctly", function() {
+                return paywall_anywhere_format_price(500, 'USD') === '$5.00';
             });
             
-            $this->test("pc_format_price formats EUR correctly", function() {
-                return pc_format_price(1000, 'EUR') === '€10.00';
+            $this->test("paywall_anywhere_format_price formats EUR correctly", function() {
+                return paywall_anywhere_format_price(1000, 'EUR') === '€10.00';
             });
         }
     }
     
     private function testPriceFormatting() {
-        if (!function_exists('pc_format_price')) {
+        if (!function_exists('paywall_anywhere_format_price')) {
             $this->test("Skipping price formatting tests - function not available", function() {
                 return true;
             });
@@ -136,7 +136,7 @@ class PayWallPluginTest {
         
         foreach ($testCases as [$amount, $currency, $expected]) {
             $this->test("Format {$amount} {$currency} as {$expected}", function() use ($amount, $currency, $expected) {
-                return pc_format_price($amount, $currency) === $expected;
+                return paywall_anywhere_format_price($amount, $currency) === $expected;
             });
         }
     }
