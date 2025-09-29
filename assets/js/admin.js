@@ -31,6 +31,15 @@
             
             // Enable/disable test connection based on keys
             $(document).on('input', '#stripe_publishable_key, #stripe_secret_key', this.toggleStripeTestButton.bind(this));
+            
+            // Premium items page functionality
+            $(document).on('click', '#scan-locked-items-btn, #scan-empty-state-btn', this.scanLockedItems.bind(this));
+            $(document).on('click', '.paywall-anywhere-edit-item-btn', this.startInlineEdit.bind(this));
+            $(document).on('click', '.paywall-anywhere-save-item-btn', this.saveInlineEdit.bind(this));
+            $(document).on('click', '.paywall-anywhere-cancel-edit-btn', this.cancelInlineEdit.bind(this));
+            $(document).on('dblclick', '.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry', this.startInlineEditField.bind(this));
+            $(document).on('keydown', '.paywall-anywhere-edit-input', this.handleInlineEditKeydown.bind(this));
+            $(document).on('blur', '.paywall-anywhere-edit-input', this.handleInlineEditBlur.bind(this));
         },
         
         initValidation: function() {
@@ -226,6 +235,156 @@
                     $btn.prop('disabled', false).text('Test Connection');
                 }
             });
+        },
+        
+        // Premium Items Management
+        scanLockedItems: function(e) {
+            e.preventDefault();
+            
+            var $btn = $(e.target);
+            var originalText = $btn.text();
+            
+            // Show loading state
+            $btn.prop('disabled', true).text('Scanning...');
+            
+            // Submit the hidden form
+            $('#scan-locked-items-form').submit();
+            
+            // Note: In a real implementation, you'd want to do this via AJAX
+            // For now, we're using form submission which will reload the page
+        },
+        
+        startInlineEdit: function(e) {
+            e.preventDefault();
+            
+            var $btn = $(e.target);
+            var itemId = $btn.data('item-id');
+            var $row = $btn.closest('tr');
+            
+            // Hide edit button, show save/cancel buttons
+            $btn.hide();
+            $row.find('.paywall-anywhere-save-item-btn[data-item-id="' + itemId + '"]').show();
+            $row.find('.paywall-anywhere-cancel-edit-btn[data-item-id="' + itemId + '"]').show();
+            $row.find('.paywall-anywhere-delete-form').hide();
+            
+            // Enable inline editing for this row
+            $row.find('.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry').each(function() {
+                var $container = $(this);
+                var $display = $container.find('.paywall-anywhere-display-value');
+                var $input = $container.find('.paywall-anywhere-edit-input');
+                
+                $display.hide();
+                $input.show().focus();
+            });
+        },
+        
+        saveInlineEdit: function(e) {
+            e.preventDefault();
+            
+            var $btn = $(e.target);
+            var itemId = $btn.data('item-id');
+            var $row = $btn.closest('tr');
+            
+            // Get the new values
+            var newPrice = parseInt($row.find('.paywall-anywhere-inline-edit-price .paywall-anywhere-edit-input').val());
+            var newExpiry = $row.find('.paywall-anywhere-inline-edit-expiry .paywall-anywhere-edit-input').val();
+            
+            // Validate
+            if (isNaN(newPrice) || newPrice < 0) {
+                alert('Please enter a valid price (0 or greater).');
+                return;
+            }
+            
+            if (newExpiry !== '' && (isNaN(parseInt(newExpiry)) || parseInt(newExpiry) < 0)) {
+                alert('Please enter a valid expiry (0 or greater, empty for never).');
+                return;
+            }
+            
+            // Show loading state
+            $btn.prop('disabled', true).text('Saving...');
+            
+            // Set form values and submit
+            $('#update-item-id').val(itemId);
+            $('#update-item-price').val(newPrice);
+            $('#update-item-expires').val(newExpiry);
+            $('#update-item-form').submit();
+        },
+        
+        cancelInlineEdit: function(e) {
+            e.preventDefault();
+            
+            var $btn = $(e.target);
+            var itemId = $btn.data('item-id');
+            var $row = $btn.closest('tr');
+            
+            // Restore original values and UI state
+            $row.find('.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry').each(function() {
+                var $container = $(this);
+                var $display = $container.find('.paywall-anywhere-display-value');
+                var $input = $container.find('.paywall-anywhere-edit-input');
+                
+                // Reset input to original value
+                $input.val($input.data('original-value') || $input.val());
+                
+                $input.hide();
+                $display.show();
+            });
+            
+            // Restore button states
+            $btn.hide();
+            $row.find('.paywall-anywhere-save-item-btn[data-item-id="' + itemId + '"]').hide();
+            $row.find('.paywall-anywhere-edit-item-btn[data-item-id="' + itemId + '"]').show();
+            $row.find('.paywall-anywhere-delete-form').show();
+        },
+        
+        startInlineEditField: function(e) {
+            var $container = $(e.target).closest('.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry');
+            var $display = $container.find('.paywall-anywhere-display-value');
+            var $input = $container.find('.paywall-anywhere-edit-input');
+            
+            // Store original value
+            $input.data('original-value', $input.val());
+            
+            $display.hide();
+            $input.show().focus().select();
+        },
+        
+        handleInlineEditKeydown: function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                $(e.target).blur();
+            } else if (e.which === 27) { // Escape key
+                e.preventDefault();
+                var $input = $(e.target);
+                var $container = $input.closest('.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry');
+                var $display = $container.find('.paywall-anywhere-display-value');
+                
+                // Restore original value
+                $input.val($input.data('original-value') || $input.val());
+                $input.hide();
+                $display.show();
+            }
+        },
+        
+        handleInlineEditBlur: function(e) {
+            var $input = $(e.target);
+            var $container = $input.closest('.paywall-anywhere-inline-edit-price, .paywall-anywhere-inline-edit-expiry');
+            var $display = $container.find('.paywall-anywhere-display-value');
+            
+            // Simple validation
+            var value = $input.val();
+            if ($container.hasClass('paywall-anywhere-inline-edit-price')) {
+                if (isNaN(parseInt(value)) || parseInt(value) < 0) {
+                    $input.val($input.data('original-value') || 0);
+                }
+            } else if ($container.hasClass('paywall-anywhere-inline-edit-expiry')) {
+                if (value !== '' && (isNaN(parseInt(value)) || parseInt(value) < 0)) {
+                    $input.val($input.data('original-value') || '');
+                }
+            }
+            
+            $input.hide();
+            $display.show();
         }
     };
     

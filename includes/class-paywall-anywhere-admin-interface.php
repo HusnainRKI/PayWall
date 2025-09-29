@@ -231,70 +231,355 @@ class Admin_Interface {
                         echo '<div class="notice notice-success"><p>' . __( 'Item deleted successfully.', 'paywall-anywhere' ) . '</p></div>';
                     }
                     break;
+                case 'scan_locked_items':
+                    $scanned = $this->scan_and_register_locked_items();
+                    echo '<div class="notice notice-success"><p>' . sprintf( __( 'Scan completed. Found and registered %d locked items.', 'paywall-anywhere' ), $scanned ) . '</p></div>';
+                    break;
+                case 'update_item':
+                    $item_id = absint( $_POST['item_id'] );
+                    $price = absint( $_POST['price'] );
+                    $expires_days = $_POST['expires_days'] === '' ? null : absint( $_POST['expires_days'] );
+                    
+                    if ( $item_id && $db->update_item( $item_id, array( 
+                        'price_minor' => $price,
+                        'expires_days' => $expires_days
+                    ) ) ) {
+                        echo '<div class="notice notice-success"><p>' . __( 'Item updated successfully.', 'paywall-anywhere' ) . '</p></div>';
+                    }
+                    break;
             }
         }
         
+        // Get filter parameters
+        $scope_filter = isset( $_GET['scope'] ) ? sanitize_text_field( $_GET['scope'] ) : '';
+        $status_filter = isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '';
+        $search_query = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+        
+        // Build query
         global $wpdb;
-        $items = $wpdb->get_results( "SELECT * FROM {$db->get_items_table()} ORDER BY created_at DESC LIMIT 100" );
+        $table = $db->get_items_table();
+        $where_conditions = array( '1=1' );
+        $params = array();
+        
+        if ( ! empty( $scope_filter ) ) {
+            $where_conditions[] = 'scope = %s';
+            $params[] = $scope_filter;
+        }
+        
+        if ( ! empty( $status_filter ) ) {
+            $where_conditions[] = 'status = %s';
+            $params[] = $status_filter;
+        }
+        
+        if ( ! empty( $search_query ) ) {
+            $where_conditions[] = '(post_id IN (SELECT ID FROM ' . $wpdb->posts . ' WHERE post_title LIKE %s) OR selector LIKE %s)';
+            $params[] = '%' . $wpdb->esc_like( $search_query ) . '%';
+            $params[] = '%' . $wpdb->esc_like( $search_query ) . '%';
+        }
+        
+        $where_clause = implode( ' AND ', $where_conditions );
+        $query = "SELECT * FROM {$table} WHERE {$where_clause} ORDER BY updated_at DESC, created_at DESC LIMIT 100";
+        
+        if ( ! empty( $params ) ) {
+            $items = $wpdb->get_results( $wpdb->prepare( $query, $params ) );
+        } else {
+            $items = $wpdb->get_results( $query );
+        }
         
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+            <h1>
+                <?php echo esc_html( get_admin_page_title() ); ?>
+                <button type="button" class="page-title-action" id="scan-locked-items-btn">
+                    <?php _e( 'Scan & Register Locked Items', 'paywall-anywhere' ); ?>
+                </button>
+            </h1>
             
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php _e( 'ID', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Post', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Scope', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Price', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Status', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Created', 'paywall-anywhere' ); ?></th>
-                        <th><?php _e( 'Actions', 'paywall-anywhere' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ( empty( $items ) ) : ?>
+            <!-- Filters and Search -->
+            <div class="paywall-anywhere-items-filters">
+                <form method="get" class="paywall-anywhere-filters-form">
+                    <input type="hidden" name="page" value="paywall-anywhere-items">
+                    
+                    <div class="paywall-anywhere-filter-row">
+                        <select name="scope" id="scope-filter">
+                            <option value=""><?php _e( 'All Scopes', 'paywall-anywhere' ); ?></option>
+                            <option value="post" <?php selected( $scope_filter, 'post' ); ?>><?php _e( 'Post', 'paywall-anywhere' ); ?></option>
+                            <option value="block" <?php selected( $scope_filter, 'block' ); ?>><?php _e( 'Block', 'paywall-anywhere' ); ?></option>
+                            <option value="paragraph" <?php selected( $scope_filter, 'paragraph' ); ?>><?php _e( 'Paragraph', 'paywall-anywhere' ); ?></option>
+                            <option value="media" <?php selected( $scope_filter, 'media' ); ?>><?php _e( 'Media', 'paywall-anywhere' ); ?></option>
+                        </select>
+                        
+                        <select name="status" id="status-filter">
+                            <option value=""><?php _e( 'All Statuses', 'paywall-anywhere' ); ?></option>
+                            <option value="active" <?php selected( $status_filter, 'active' ); ?>><?php _e( 'Active', 'paywall-anywhere' ); ?></option>
+                            <option value="archived" <?php selected( $status_filter, 'archived' ); ?>><?php _e( 'Archived', 'paywall-anywhere' ); ?></option>
+                        </select>
+                        
+                        <input type="search" 
+                               name="s" 
+                               value="<?php echo esc_attr( $search_query ); ?>" 
+                               placeholder="<?php esc_attr_e( 'Search items by post title or content...', 'paywall-anywhere' ); ?>" 
+                               class="paywall-anywhere-search-input">
+                        
+                        <button type="submit" class="button"><?php _e( 'Filter', 'paywall-anywhere' ); ?></button>
+                        
+                        <?php if ( ! empty( $scope_filter ) || ! empty( $status_filter ) || ! empty( $search_query ) ) : ?>
+                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=paywall-anywhere-items' ) ); ?>" class="button">
+                                <?php _e( 'Clear Filters', 'paywall-anywhere' ); ?>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Items Table -->
+            <div class="paywall-anywhere-items-table-container">
+                <table class="paywall-anywhere-table wp-list-table widefat fixed striped">
+                    <thead>
                         <tr>
-                            <td colspan="7"><?php _e( 'No premium items found.', 'paywall-anywhere' ); ?></td>
+                            <th><?php _e( 'Item', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Post', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Price', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Expiry', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Status', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Updated', 'paywall-anywhere' ); ?></th>
+                            <th><?php _e( 'Actions', 'paywall-anywhere' ); ?></th>
                         </tr>
-                    <?php else : ?>
-                        <?php foreach ( $items as $item ) : ?>
+                    </thead>
+                    <tbody>
+                        <?php if ( empty( $items ) ) : ?>
                             <tr>
-                                <td><?php echo esc_html( $item->id ); ?></td>
-                                <td>
-                                    <?php if ( $item->post_id ) : ?>
-                                        <a href="<?php echo esc_url( get_edit_post_link( $item->post_id ) ); ?>">
-                                            <?php echo esc_html( get_the_title( $item->post_id ) ); ?>
-                                        </a>
-                                    <?php else : ?>
-                                        —
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo esc_html( $item->scope ); ?></td>
-                                <td><?php echo esc_html( \paywall_anywhere_format_price( $item->price_minor, $item->currency ) ); ?></td>
-                                <td>
-                                    <span class="paywall-anywhere-status paywall-anywhere-status-<?php echo esc_attr( $item->status ); ?>">
-                                        <?php echo esc_html( ucfirst( $item->status ) ); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo esc_html( $item->created_at ); ?></td>
-                                <td>
-                                    <form method="post" style="display: inline;">
-                                        <?php wp_nonce_field( 'paywall_anywhere_admin_action', 'paywall_anywhere_nonce' ); ?>
-                                        <input type="hidden" name="action" value="delete_item">
-                                        <input type="hidden" name="item_id" value="<?php echo esc_attr( $item->id ); ?>">
-                                        <button type="submit" class="button button-small" onclick="return confirm('<?php esc_attr_e( 'Are you sure?', 'paywall-anywhere' ); ?>')">
-                                            <?php _e( 'Delete', 'paywall-anywhere' ); ?>
+                                <td colspan="7" class="paywall-anywhere-empty-state">
+                                    <div class="paywall-anywhere-empty-content">
+                                        <h3><?php _e( 'No premium items found', 'paywall-anywhere' ); ?></h3>
+                                        <p><?php _e( 'Start by scanning for locked content or create new premium items in your posts.', 'paywall-anywhere' ); ?></p>
+                                        <button type="button" class="button button-primary" id="scan-empty-state-btn">
+                                            <?php _e( 'Scan for Locked Items', 'paywall-anywhere' ); ?>
                                         </button>
-                                    </form>
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        <?php else : ?>
+                            <?php foreach ( $items as $item ) : ?>
+                                <tr data-item-id="<?php echo esc_attr( $item->id ); ?>">
+                                    <td>
+                                        <div class="paywall-anywhere-item-info">
+                                            <strong class="paywall-anywhere-item-title">
+                                                <?php 
+                                                $title = $this->get_item_display_title( $item );
+                                                echo esc_html( $title );
+                                                ?>
+                                            </strong>
+                                            <div class="paywall-anywhere-item-scope">
+                                                <span class="paywall-anywhere-scope-badge paywall-anywhere-scope-<?php echo esc_attr( $item->scope ); ?>">
+                                                    <?php echo esc_html( ucfirst( $item->scope ) ); ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php if ( $item->post_id ) : ?>
+                                            <a href="<?php echo esc_url( get_edit_post_link( $item->post_id ) ); ?>" target="_blank">
+                                                <?php echo esc_html( get_the_title( $item->post_id ) ); ?>
+                                                <span class="dashicons dashicons-external" style="font-size: 12px; margin-left: 4px;"></span>
+                                            </a>
+                                        <?php else : ?>
+                                            <span class="paywall-anywhere-no-post">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="paywall-anywhere-inline-edit-price" data-field="price" data-item-id="<?php echo esc_attr( $item->id ); ?>">
+                                            <span class="paywall-anywhere-display-value">
+                                                <?php echo esc_html( \paywall_anywhere_format_price( $item->price_minor, $item->currency ) ); ?>
+                                            </span>
+                                            <input type="number" 
+                                                   class="paywall-anywhere-edit-input" 
+                                                   value="<?php echo esc_attr( $item->price_minor ); ?>" 
+                                                   min="0" 
+                                                   step="1" 
+                                                   style="display: none; width: 80px;">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="paywall-anywhere-inline-edit-expiry" data-field="expires_days" data-item-id="<?php echo esc_attr( $item->id ); ?>">
+                                            <span class="paywall-anywhere-display-value">
+                                                <?php 
+                                                if ( $item->expires_days ) {
+                                                    printf( _n( '%d day', '%d days', $item->expires_days, 'paywall-anywhere' ), $item->expires_days );
+                                                } else {
+                                                    _e( 'Never', 'paywall-anywhere' );
+                                                }
+                                                ?>
+                                            </span>
+                                            <input type="number" 
+                                                   class="paywall-anywhere-edit-input" 
+                                                   value="<?php echo esc_attr( $item->expires_days ); ?>" 
+                                                   min="0" 
+                                                   step="1" 
+                                                   style="display: none; width: 80px;"
+                                                   placeholder="0 = never">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="paywall-anywhere-status paywall-anywhere-status-<?php echo esc_attr( $item->status ); ?>">
+                                            <?php echo esc_html( ucfirst( $item->status ) ); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $updated = $item->updated_at ?? $item->created_at;
+                                        echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $updated ) ) );
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <div class="paywall-anywhere-item-actions">
+                                            <button type="button" class="button button-small paywall-anywhere-edit-item-btn" data-item-id="<?php echo esc_attr( $item->id ); ?>">
+                                                <?php _e( 'Edit', 'paywall-anywhere' ); ?>
+                                            </button>
+                                            <button type="button" class="button button-small paywall-anywhere-save-item-btn" data-item-id="<?php echo esc_attr( $item->id ); ?>" style="display: none;">
+                                                <?php _e( 'Save', 'paywall-anywhere' ); ?>
+                                            </button>
+                                            <button type="button" class="button button-small paywall-anywhere-cancel-edit-btn" data-item-id="<?php echo esc_attr( $item->id ); ?>" style="display: none;">
+                                                <?php _e( 'Cancel', 'paywall-anywhere' ); ?>
+                                            </button>
+                                            <form method="post" style="display: inline;" class="paywall-anywhere-delete-form">
+                                                <?php wp_nonce_field( 'paywall_anywhere_admin_action', 'paywall_anywhere_nonce' ); ?>
+                                                <input type="hidden" name="action" value="delete_item">
+                                                <input type="hidden" name="item_id" value="<?php echo esc_attr( $item->id ); ?>">
+                                                <button type="submit" class="button button-small paywall-anywhere-btn-danger" onclick="return confirm('<?php esc_attr_e( 'Are you sure?', 'paywall-anywhere' ); ?>')">
+                                                    <?php _e( 'Delete', 'paywall-anywhere' ); ?>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Hidden forms for AJAX actions -->
+            <form id="scan-locked-items-form" method="post" style="display: none;">
+                <?php wp_nonce_field( 'paywall_anywhere_admin_action', 'paywall_anywhere_nonce' ); ?>
+                <input type="hidden" name="action" value="scan_locked_items">
+            </form>
+            
+            <form id="update-item-form" method="post" style="display: none;">
+                <?php wp_nonce_field( 'paywall_anywhere_admin_action', 'paywall_anywhere_nonce' ); ?>
+                <input type="hidden" name="action" value="update_item">
+                <input type="hidden" name="item_id" id="update-item-id">
+                <input type="hidden" name="price" id="update-item-price">
+                <input type="hidden" name="expires_days" id="update-item-expires">
+            </form>
         </div>
+        
+        <style>
+        .paywall-anywhere-items-filters {
+            background: white;
+            border: 1px solid #ccd0d4;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .paywall-anywhere-filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .paywall-anywhere-search-input {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+        }
+        
+        .paywall-anywhere-items-table-container {
+            background: white;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .paywall-anywhere-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .paywall-anywhere-empty-content h3 {
+            color: #666;
+            margin: 0 0 10px 0;
+        }
+        
+        .paywall-anywhere-empty-content p {
+            color: #999;
+            margin: 0 0 20px 0;
+        }
+        
+        .paywall-anywhere-item-info {
+            max-width: 300px;
+        }
+        
+        .paywall-anywhere-item-title {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .paywall-anywhere-scope-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .paywall-anywhere-scope-post {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .paywall-anywhere-scope-block {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .paywall-anywhere-scope-paragraph {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .paywall-anywhere-scope-media {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .paywall-anywhere-inline-edit-price,
+        .paywall-anywhere-inline-edit-expiry {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        
+        .paywall-anywhere-inline-edit-price:hover,
+        .paywall-anywhere-inline-edit-expiry:hover {
+            background: #f0f0f0;
+        }
+        
+        .paywall-anywhere-item-actions {
+            white-space: nowrap;
+        }
+        
+        .paywall-anywhere-item-actions .button {
+            margin-right: 5px;
+        }
+        
+        .paywall-anywhere-no-post {
+            color: #999;
+        }
+        </style>
         <?php
     }
     
@@ -814,5 +1099,199 @@ class Admin_Interface {
             'success' => false,
             'message' => $error_message
         );
+    }
+    
+    /**
+     * Get display title for an item based on its scope and content
+     */
+    private function get_item_display_title( $item ) {
+        switch ( $item->scope ) {
+            case 'post':
+                return __( 'Full Post Access', 'paywall-anywhere' );
+            case 'block':
+                if ( $item->selector ) {
+                    return sprintf( __( 'Block: %s', 'paywall-anywhere' ), $this->truncate_text( $item->selector, 30 ) );
+                }
+                return __( 'Gutenberg Block', 'paywall-anywhere' );
+            case 'paragraph':
+                if ( $item->selector ) {
+                    return sprintf( __( 'Paragraph: %s', 'paywall-anywhere' ), $this->truncate_text( $item->selector, 40 ) );
+                }
+                return __( 'Text Paragraph', 'paywall-anywhere' );
+            case 'media':
+                if ( $item->post_id ) {
+                    $attachment = get_post( $item->post_id );
+                    if ( $attachment ) {
+                        return sprintf( __( 'Media: %s', 'paywall-anywhere' ), $attachment->post_title );
+                    }
+                }
+                return __( 'Media File', 'paywall-anywhere' );
+            default:
+                return sprintf( __( '%s Content', 'paywall-anywhere' ), ucfirst( $item->scope ) );
+        }
+    }
+    
+    /**
+     * Truncate text with ellipsis
+     */
+    private function truncate_text( $text, $length = 50 ) {
+        if ( strlen( $text ) <= $length ) {
+            return $text;
+        }
+        return substr( $text, 0, $length ) . '...';
+    }
+    
+    /**
+     * Scan posts for locked content and register as premium items
+     */
+    private function scan_and_register_locked_items() {
+        $db = \Paywall_Anywhere\Plugin::instance()->db;
+        $scanned_count = 0;
+        
+        // Get all published posts
+        $posts = get_posts( array(
+            'post_type' => array( 'post', 'page' ),
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'meta_query' => array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_paywall_anywhere_locked',
+                    'value' => '1',
+                    'compare' => '='
+                ),
+                array(
+                    'key' => '_paywall_anywhere_gate_position',
+                    'compare' => 'EXISTS'
+                )
+            )
+        ) );
+        
+        foreach ( $posts as $post ) {
+            // Check if post-level lock exists
+            $is_post_locked = get_post_meta( $post->ID, '_paywall_anywhere_locked', true );
+            $gate_position = get_post_meta( $post->ID, '_paywall_anywhere_gate_position', true );
+            
+            if ( $is_post_locked || $gate_position ) {
+                // Check if item already exists
+                $existing = $db->get_items_by_post( $post->ID );
+                $post_item_exists = false;
+                
+                foreach ( $existing as $item ) {
+                    if ( $item->scope === 'post' ) {
+                        $post_item_exists = true;
+                        break;
+                    }
+                }
+                
+                if ( ! $post_item_exists ) {
+                    // Create post-level item
+                    $default_price = get_option( 'paywall_anywhere_default_price', 500 );
+                    $default_currency = get_option( 'paywall_anywhere_default_currency', 'USD' );
+                    $default_expires = get_option( 'paywall_anywhere_default_expires_days', 30 );
+                    
+                    $db->create_item( array(
+                        'post_id' => $post->ID,
+                        'scope' => 'post',
+                        'selector' => '',
+                        'price_minor' => $default_price,
+                        'currency' => $default_currency,
+                        'expires_days' => $default_expires > 0 ? $default_expires : null,
+                        'status' => 'active'
+                    ) );
+                    
+                    $scanned_count++;
+                }
+            }
+            
+            // Scan post content for shortcodes and locked blocks
+            $content = $post->post_content;
+            
+            // Check for paywall shortcodes
+            if ( strpos( $content, '[paywall_anywhere_lock' ) !== false ) {
+                preg_match_all( '/\[paywall_anywhere_lock[^\]]*\](.*?)\[\/paywall_anywhere_lock\]/s', $content, $matches );
+                
+                foreach ( $matches[0] as $index => $match ) {
+                    $shortcode_content = $matches[1][$index];
+                    
+                    // Check if this shortcode item already exists
+                    $selector = 'shortcode_' . md5( $match );
+                    $existing_shortcode = $wpdb->get_var( $wpdb->prepare(
+                        "SELECT id FROM {$db->get_items_table()} WHERE post_id = %d AND selector = %s",
+                        $post->ID,
+                        $selector
+                    ) );
+                    
+                    if ( ! $existing_shortcode ) {
+                        // Parse shortcode attributes
+                        $atts = shortcode_parse_atts( str_replace( array( '[paywall_anywhere_lock', ']' ), '', $match ) );
+                        $price = isset( $atts['price'] ) ? absint( $atts['price'] ) : get_option( 'paywall_anywhere_default_price', 500 );
+                        $expires_days = isset( $atts['expires_days'] ) ? absint( $atts['expires_days'] ) : get_option( 'paywall_anywhere_default_expires_days', 30 );
+                        
+                        $db->create_item( array(
+                            'post_id' => $post->ID,
+                            'scope' => 'block',
+                            'selector' => $selector,
+                            'price_minor' => $price,
+                            'currency' => get_option( 'paywall_anywhere_default_currency', 'USD' ),
+                            'expires_days' => $expires_days > 0 ? $expires_days : null,
+                            'status' => 'active'
+                        ) );
+                        
+                        $scanned_count++;
+                    }
+                }
+            }
+            
+            // Check for Gutenberg blocks with paywall attributes
+            if ( has_blocks( $content ) ) {
+                $blocks = parse_blocks( $content );
+                $this->scan_blocks_for_paywall( $blocks, $post->ID, $db, $scanned_count );
+            }
+        }
+        
+        return $scanned_count;
+    }
+    
+    /**
+     * Recursively scan blocks for paywall attributes
+     */
+    private function scan_blocks_for_paywall( $blocks, $post_id, $db, &$scanned_count ) {
+        foreach ( $blocks as $block ) {
+            // Check if block has paywall attributes
+            if ( isset( $block['attrs']['paywallAnywhereLocked'] ) && $block['attrs']['paywallAnywhereLocked'] ) {
+                $selector = 'block_' . $block['blockName'] . '_' . md5( serialize( $block ) );
+                
+                // Check if this block item already exists
+                global $wpdb;
+                $existing_block = $wpdb->get_var( $wpdb->prepare(
+                    "SELECT id FROM {$db->get_items_table()} WHERE post_id = %d AND selector = %s",
+                    $post_id,
+                    $selector
+                ) );
+                
+                if ( ! $existing_block ) {
+                    $price = isset( $block['attrs']['paywallAnywherePrice'] ) ? absint( $block['attrs']['paywallAnywherePrice'] ) : get_option( 'paywall_anywhere_default_price', 500 );
+                    $expires_days = isset( $block['attrs']['paywallAnywhereExpiresDays'] ) ? absint( $block['attrs']['paywallAnywhereExpiresDays'] ) : get_option( 'paywall_anywhere_default_expires_days', 30 );
+                    
+                    $db->create_item( array(
+                        'post_id' => $post_id,
+                        'scope' => 'block',
+                        'selector' => $selector,
+                        'price_minor' => $price,
+                        'currency' => get_option( 'paywall_anywhere_default_currency', 'USD' ),
+                        'expires_days' => $expires_days > 0 ? $expires_days : null,
+                        'status' => 'active'
+                    ) );
+                    
+                    $scanned_count++;
+                }
+            }
+            
+            // Recursively scan inner blocks
+            if ( ! empty( $block['innerBlocks'] ) ) {
+                $this->scan_blocks_for_paywall( $block['innerBlocks'], $post_id, $db, $scanned_count );
+            }
+        }
     }
 }
