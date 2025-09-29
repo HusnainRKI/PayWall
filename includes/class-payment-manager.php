@@ -24,6 +24,10 @@ class Payment_Manager {
         add_action( 'wp_ajax_pc_create_payment', array( $this, 'handle_create_payment' ) );
         add_action( 'wp_ajax_nopriv_pc_create_payment', array( $this, 'handle_create_payment' ) );
         
+        // AJAX handler for creating items on the fly
+        add_action( 'wp_ajax_pc_create_item_for_purchase', array( $this, 'handle_create_item_for_purchase' ) );
+        add_action( 'wp_ajax_nopriv_pc_create_item_for_purchase', array( $this, 'handle_create_item_for_purchase' ) );
+        
         // Stripe webhook handler
         add_action( 'wp_ajax_pc_stripe_webhook', array( $this, 'handle_stripe_webhook' ) );
         add_action( 'wp_ajax_nopriv_pc_stripe_webhook', array( $this, 'handle_stripe_webhook' ) );
@@ -60,6 +64,52 @@ class Payment_Manager {
         }
         
         wp_die( json_encode( $result ) );
+    }
+    
+    /**
+     * Handle creating item for purchase on the fly
+     */
+    public function handle_create_item_for_purchase() {
+        check_ajax_referer( 'pc_nonce', 'nonce' );
+        
+        $post_id = absint( $_POST['post_id'] ?? 0 );
+        $scope = sanitize_text_field( $_POST['scope'] ?? 'post' );
+        $selector = sanitize_text_field( $_POST['selector'] ?? '' );
+        
+        if ( ! $post_id ) {
+            wp_die( json_encode( array( 'success' => false, 'message' => 'Invalid post ID' ) ) );
+        }
+        
+        // Get default pricing
+        $default_price = Plugin::instance()->get_option( 'default_price', 500 );
+        $currency = Plugin::instance()->get_option( 'currency', 'USD' );
+        $expires_days = Plugin::instance()->get_option( 'default_expires_days', 30 );
+        
+        // Check if item already exists
+        $db = Plugin::instance()->db;
+        $existing_items = $db->get_items_by_post( $post_id );
+        
+        foreach ( $existing_items as $item ) {
+            if ( $item->scope === $scope && $item->selector === $selector ) {
+                wp_die( json_encode( array( 'success' => true, 'item_id' => $item->id ) ) );
+            }
+        }
+        
+        // Create new item
+        $item_id = $db->create_item( array(
+            'post_id' => $post_id,
+            'scope' => $scope,
+            'selector' => $selector,
+            'price_minor' => $default_price,
+            'currency' => $currency,
+            'expires_days' => $expires_days,
+        ));
+        
+        if ( $item_id ) {
+            wp_die( json_encode( array( 'success' => true, 'item_id' => $item_id ) ) );
+        } else {
+            wp_die( json_encode( array( 'success' => false, 'message' => 'Failed to create item' ) ) );
+        }
     }
     
     /**

@@ -1,0 +1,97 @@
+/**
+ * Unlock CTA Block - Editor Styles
+ */
+
+.pc-unlock-cta-block {
+    border: 1px dashed #007cba;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: rgba(0, 124, 186, 0.05);
+}
+
+.pc-unlock-cta-preview {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-cta-content {
+    text-align: center;
+}
+
+.pc-cta-content h4 {
+    margin: 0 0 1rem 0;
+    color: #1e1e1e;
+    font-size: 1.3rem;
+}
+
+.pc-cta-content p {
+    margin: 0 0 1.5rem 0;
+    color: #757575;
+    font-size: 1rem;
+}
+
+.pc-cta-placeholder {
+    text-align: center;
+    color: #757575;
+    font-style: italic;
+}
+
+.pc-unlock-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.pc-unlock-btn--filled {
+    background: #007cba;
+    color: white;
+    border-color: #007cba;
+}
+
+.pc-unlock-btn--outline {
+    background: transparent;
+    color: #007cba;
+    border-color: #007cba;
+}
+
+/* Alignment classes */
+.pc-unlock-cta-block.pc-align-left {
+    text-align: left;
+}
+
+.pc-unlock-cta-block.pc-align-left .pc-cta-content,
+.pc-unlock-cta-block.pc-align-left .pc-cta-placeholder {
+    text-align: left;
+}
+
+.pc-unlock-cta-block.pc-align-center {
+    text-align: center;
+}
+
+.pc-unlock-cta-block.pc-align-right {
+    text-align: right;
+}
+
+.pc-unlock-cta-block.pc-align-right .pc-cta-content,
+.pc-unlock-cta-block.pc-align-right .pc-cta-placeholder {
+    text-align: right;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pc-unlock-cta-block {
+        padding: 1rem;
+    }
+    
+    .pc-unlock-btn {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
