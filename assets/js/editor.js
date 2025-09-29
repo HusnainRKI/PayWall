@@ -7,10 +7,13 @@
     
     const { registerBlockType } = wp.blocks;
     const { InspectorControls, useBlockProps } = wp.blockEditor;
-    const { PanelBody, TextControl, SelectControl, ToggleControl, RangeControl, Button } = wp.components;
+    const { PanelBody, TextControl, SelectControl, ToggleControl, RangeControl, Button, SearchControl } = wp.components;
     const { Fragment, useState } = wp.element;
     const { __ } = wp.i18n;
     const { useSelect, useDispatch } = wp.data;
+    const { addFilter } = wp.hooks;
+    const { createHigherOrderComponent } = wp.compose;
+    const { registerShortcut } = wp.keyboardShortcuts || { registerShortcut: () => {} };
     
     /**
      * Gate Start Block
@@ -207,8 +210,6 @@
     /**
      * Block Extensions for Individual Block Locking
      */
-    const { createHigherOrderComponent } = wp.compose;
-    const { addFilter } = wp.hooks;
     
     /**
      * Add lock controls to all blocks
@@ -229,9 +230,9 @@
                 <Fragment>
                     <BlockEdit {...props} />
                     <InspectorControls>
-                        <PanelBody title={__('Paywall Settings', 'paywall-anywhere')} initialOpen={false}>
+                        <PanelBody title={__('Paywall Anywhere — Locking', 'paywall-anywhere')} initialOpen={false}>
                             <ToggleControl
-                                label={__('Lock this block', 'paywall-anywhere')}
+                                label={__('Lock this block (Paywall Anywhere)', 'paywall-anywhere')}
                                 checked={isLocked}
                                 onChange={(value) => setAttributes({ paywallAnywhereLocked: value })}
                             />
@@ -502,6 +503,153 @@
                 }, wp.element.createElement(FindAndLockControl));
             },
             icon: 'lock'
+        });
+    }
+    
+    /**
+     * Locked Elements Panel Component
+     */
+    const LockedElementsPanel = () => {
+        const { blocks } = useSelect((select) => ({
+            blocks: select('core/block-editor').getBlocks()
+        }));
+        
+        const { updateBlockAttributes } = useDispatch('core/block-editor');
+        
+        // Get locked blocks
+        const lockedBlocks = [];
+        const findLockedBlocks = (blockList) => {
+            blockList.forEach(block => {
+                if (block.attributes.paywallAnywhereLocked) {
+                    lockedBlocks.push({
+                        id: block.clientId,
+                        name: block.name,
+                        price: block.attributes.paywallAnywherePrice || 500,
+                        currency: block.attributes.paywallAnywhereCurrency || 'USD',
+                        expiry: block.attributes.paywallAnywhereExpiresDays || 30
+                    });
+                }
+                if (block.innerBlocks && block.innerBlocks.length > 0) {
+                    findLockedBlocks(block.innerBlocks);
+                }
+            });
+        };
+        
+        findLockedBlocks(blocks);
+        
+        const unlockBlock = (blockId) => {
+            updateBlockAttributes(blockId, {
+                paywallAnywhereLocked: false
+            });
+        };
+        
+        const jumpToBlock = (blockId) => {
+            const blockElement = document.querySelector(`[data-block="${blockId}"]`);
+            if (blockElement) {
+                blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                blockElement.style.border = '2px solid #667eea';
+                setTimeout(() => {
+                    blockElement.style.border = '';
+                }, 2000);
+            }
+        };
+        
+        return wp.element.createElement('div', { className: 'paywall-anywhere-locked-elements' },
+            lockedBlocks.length === 0 ? 
+                wp.element.createElement('p', { style: { color: '#757575', fontStyle: 'italic' } },
+                    __('No locked elements in this post.', 'paywall-anywhere')
+                ) :
+                wp.element.createElement('div', null,
+                    wp.element.createElement('p', { style: { marginBottom: '16px', fontSize: '12px', color: '#757575' } },
+                        lockedBlocks.length + ' ' + __('locked elements', 'paywall-anywhere')
+                    ),
+                    lockedBlocks.map((block, index) =>
+                        wp.element.createElement('div', { 
+                            key: block.id,
+                            className: 'paywall-anywhere-locked-item',
+                            style: { 
+                                padding: '12px', 
+                                border: '1px solid #ddd', 
+                                borderRadius: '4px', 
+                                marginBottom: '8px' 
+                            }
+                        },
+                            wp.element.createElement('div', { 
+                                style: { 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    marginBottom: '8px' 
+                                }
+                            },
+                                wp.element.createElement('strong', null, 
+                                    block.name.replace('core/', '').replace('paywall-anywhere/', '')
+                                ),
+                                wp.element.createElement('span', { style: { fontSize: '12px' } },
+                                    '🔒'
+                                )
+                            ),
+                            wp.element.createElement('div', { style: { fontSize: '12px', color: '#757575', marginBottom: '8px' } },
+                                paywall_anywhere_format_price(block.price, block.currency) + 
+                                ' • ' + block.expiry + ' ' + __('days', 'paywall-anywhere')
+                            ),
+                            wp.element.createElement('div', { style: { display: 'flex', gap: '8px' } },
+                                wp.element.createElement(Button, {
+                                    isSmall: true,
+                                    onClick: () => jumpToBlock(block.id)
+                                }, __('Jump to', 'paywall-anywhere')),
+                                wp.element.createElement(Button, {
+                                    isSmall: true,
+                                    isDestructive: true,
+                                    onClick: () => unlockBlock(block.id)
+                                }, __('Unlock', 'paywall-anywhere'))
+                            )
+                        )
+                    )
+                )
+        );
+    };
+    
+    /**
+     * Register the Locked Elements Panel
+     */
+    if (wp.plugins && wp.editPost) {
+        const { registerPlugin } = wp.plugins;
+        const { PluginDocumentSettingPanel } = wp.editPost;
+        
+        registerPlugin('paywall-anywhere-locked-elements', {
+            render: () => {
+                return wp.element.createElement(PluginDocumentSettingPanel, {
+                    name: 'paywall-anywhere-locked-elements',
+                    title: __('Paywall Anywhere — Locked Elements', 'paywall-anywhere'),
+                    className: 'paywall-anywhere-locked-elements-panel'
+                }, wp.element.createElement(LockedElementsPanel));
+            },
+            icon: 'lock'
+        });
+    }
+    
+    /**
+     * Register Command Palette command for Find & Lock
+     */
+    if (wp.commands && wp.commandPalette) {
+        const { registerCommand } = wp.commands;
+        
+        registerCommand({
+            name: 'paywall-anywhere/find-and-lock',
+            label: __('Find & Lock (Paywall Anywhere)', 'paywall-anywhere'),
+            searchTerms: ['find', 'lock', 'paywall', 'premium'],
+            callback: () => {
+                // Focus on the Find & Lock panel if it exists
+                const findLockPanel = document.querySelector('.paywall-anywhere-find-lock-panel');
+                if (findLockPanel) {
+                    findLockPanel.scrollIntoView({ behavior: 'smooth' });
+                    const searchInput = findLockPanel.querySelector('input[type="text"]');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }
+            }
         });
     }
     
