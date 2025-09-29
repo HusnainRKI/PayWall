@@ -23,47 +23,63 @@ function wp_json_encode( $data ) { return json_encode( $data ); }
 function current_user_can() { return false; }
 function get_current_user_id() { return 0; }
 
-// Set up path constants first
-define( 'PC_PLUGIN_FILE', dirname(__DIR__) . '/paywall-premium-content.php' );
-define( 'PC_PLUGIN_PATH', dirname(__DIR__) . '/' );
-define( 'PC_PLUGIN_URL', 'http://example.com/wp-content/plugins/paywall/' );
-define( 'PC_VERSION', '1.0.0' );
+// Additional WordPress functions needed
+function register_activation_hook( $file, $function ) {}
+function register_deactivation_hook( $file, $function ) {}
+
+// Mock globals
+global $wp_version;
+$wp_version = '6.5';
+
+// Set up path constants first (only if not already defined)
+if ( ! defined( 'PAYWALL_ANYWHERE_PLUGIN_FILE' ) ) {
+    define( 'PAYWALL_ANYWHERE_PLUGIN_FILE', dirname(__DIR__) . '/paywall-anywhere.php' );
+}
+if ( ! defined( 'PAYWALL_ANYWHERE_PLUGIN_PATH' ) ) {
+    define( 'PAYWALL_ANYWHERE_PLUGIN_PATH', dirname(__DIR__) . '/' );
+}
+if ( ! defined( 'PAYWALL_ANYWHERE_PLUGIN_URL' ) ) {
+    define( 'PAYWALL_ANYWHERE_PLUGIN_URL', 'http://example.com/wp-content/plugins/paywall/' );
+}
+if ( ! defined( 'PAYWALL_ANYWHERE_VERSION' ) ) {
+    define( 'PAYWALL_ANYWHERE_VERSION', '1.0.0' );
+}
 
 // Test autoloader  
-require_once dirname(__DIR__) . '/paywall-premium-content.php';
+require_once dirname(__DIR__) . '/paywall-anywhere.php';
 
-echo "PayWall Plugin Test - Basic Autoloader\n";
+echo "PayWall Anywhere Plugin Test - Basic Autoloader\n";
 
 try {
     // Test if classes can be loaded
-    if ( class_exists( 'Pc\\Plugin' ) ) {
+    if ( class_exists( 'Paywall_Anywhere\\Plugin' ) ) {
         echo "✓ Plugin class loaded successfully\n";
     } else {
         echo "✗ Plugin class failed to load\n";
     }
     
-    if ( class_exists( 'Pc\\Database_Manager' ) ) {
+    if ( class_exists( 'Paywall_Anywhere\\Data\\Database_Manager' ) ) {
         echo "✓ Database_Manager class loaded successfully\n";
     } else {
         echo "✗ Database_Manager class failed to load\n";
     }
     
-    if ( class_exists( 'Pc\\Access_Manager' ) ) {
+    if ( class_exists( 'Paywall_Anywhere\\Data\\Access_Manager' ) ) {
         echo "✓ Access_Manager class loaded successfully\n";
     } else {
         echo "✗ Access_Manager class failed to load\n";
     }
     
     // Test helper functions
-    if ( function_exists( 'pc_format_price' ) ) {
-        $formatted = pc_format_price( 500, 'USD' );
-        if ( $formatted === '.00' ) {
-            echo "✓ Helper function pc_format_price works correctly\n";
+    if ( function_exists( 'paywall_anywhere_format_price' ) ) {
+        $formatted = paywall_anywhere_format_price( 500, 'USD' );
+        if ( $formatted === '$5.00' ) {
+            echo "✓ Helper function paywall_anywhere_format_price works correctly\n";
         } else {
-            echo "✗ Helper function pc_format_price returned: {$formatted}\n";
+            echo "✗ Helper function paywall_anywhere_format_price returned: {$formatted}\n";
         }
     } else {
-        echo "✗ Helper function pc_format_price not found\n";
+        echo "✗ Helper function paywall_anywhere_format_price not found\n";
     }
     
     

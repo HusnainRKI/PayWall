@@ -26,56 +26,56 @@ class Plugin {
     /**
      * Database manager instance
      *
-     * @var Data\Database_Manager
+     * @var \Paywall_Anywhere\Data\Database_Manager
      */
     public $db;
     
     /**
      * Access manager instance
      *
-     * @var Data\Access_Manager
+     * @var \Paywall_Anywhere\Data\Access_Manager
      */
     public $access;
     
     /**
      * Content filter instance
      *
-     * @var Rendering\Content_Filter
+     * @var \Paywall_Anywhere\Rendering\Content_Filter
      */
     public $content_filter;
     
     /**
      * Block manager instance
      *
-     * @var Blocks\Block_Manager
+     * @var \Paywall_Anywhere\Blocks\Block_Manager
      */
     public $blocks;
     
     /**
      * Payment manager instance
      *
-     * @var Payments\Payment_Manager
+     * @var \Paywall_Anywhere\Payments\Payment_Manager
      */
     public $payments;
     
     /**
      * Admin interface instance
      *
-     * @var Admin\Admin_Interface
+     * @var \Paywall_Anywhere\Admin\Admin_Interface
      */
     public $admin;
     
     /**
      * Shortcodes instance
      *
-     * @var Paywall_Anywhere_Shortcodes
+     * @var \Paywall_Anywhere\Paywall_Anywhere_Shortcodes
      */
     public $shortcodes;
     
     /**
      * REST API controller instance
      *
-     * @var Rest\Api_Controller
+     * @var \Paywall_Anywhere\Rest\Api_Controller
      */
     public $rest_api;
     
@@ -104,14 +104,14 @@ class Plugin {
      */
     private function init_components() {
         // Initialize managers in the correct order
-        $this->db = new Data\Database_Manager();
-        $this->access = new Data\Access_Manager();
-        $this->content_filter = new Paywall_Anywhere_Content_Filter();
-        $this->blocks = new Paywall_Anywhere_Block_Manager();
-        $this->payments = new Paywall_Anywhere_Payment_Manager();
-        $this->admin = new Paywall_Anywhere_Admin_Interface();
-        $this->shortcodes = new Paywall_Anywhere_Shortcodes();
-        $this->rest_api = new Paywall_Anywhere_Rest_Api_Controller();
+        $this->db = new \Paywall_Anywhere\Data\Database_Manager();
+        $this->access = new \Paywall_Anywhere\Data\Access_Manager();
+        $this->content_filter = new \Paywall_Anywhere\Rendering\Content_Filter();
+        $this->blocks = new \Paywall_Anywhere\Blocks\Block_Manager();
+        $this->payments = new \Paywall_Anywhere\Payments\Payment_Manager();
+        $this->admin = new \Paywall_Anywhere\Admin\Admin_Interface();
+        $this->shortcodes = new \Paywall_Anywhere\Paywall_Anywhere_Shortcodes();
+        $this->rest_api = new \Paywall_Anywhere\Rest\Api_Controller();
     }
     
     /**
