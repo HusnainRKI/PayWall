@@ -1,0 +1,53 @@
+/**
+ * Gate Start Block - Frontend Styles
+ */
+
+.wp-block-pc-gate-start {
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    text-align: center;
+}
+
+.pc-gate-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pc-gate-icon {
+    font-size: 2rem;
+    opacity: 0.7;
+}
+
+.pc-gate-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #495057;
+    font-size: 1.2rem;
+}
+
+.pc-gate-content p {
+    margin: 0.25rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.pc-gate-description {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pc-gate-preview {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .wp-block-pc-gate-start {
+        padding: 1rem;
+    }
+}

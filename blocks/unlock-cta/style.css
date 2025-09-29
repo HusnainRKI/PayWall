@@ -1,0 +1,91 @@
+/**
+ * Unlock CTA Block - Frontend Styles
+ */
+
+.wp-block-pc-unlock-cta {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.wp-block-pc-unlock-cta.pc-align-left {
+    text-align: left;
+}
+
+.wp-block-pc-unlock-cta.pc-align-center {
+    text-align: center;
+}
+
+.wp-block-pc-unlock-cta.pc-align-right {
+    text-align: right;
+}
+
+.pc-cta-content h4 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.pc-cta-content p {
+    margin: 0 0 1.5rem 0;
+    color: #666;
+    font-size: 1rem;
+}
+
+.pc-unlock-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.pc-unlock-btn--filled {
+    background: #007cba;
+    color: white;
+    border-color: #007cba;
+}
+
+.pc-unlock-btn--filled:hover {
+    background: #005a87;
+    border-color: #005a87;
+    color: white;
+}
+
+.pc-unlock-btn--outline {
+    background: transparent;
+    color: #007cba;
+    border-color: #007cba;
+}
+
+.pc-unlock-btn--outline:hover {
+    background: #007cba;
+    color: white;
+}
+
+.pc-unlock-btn:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.pc-unlock-btn:active {
+    transform: translateY(1px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .wp-block-pc-unlock-cta {
+        padding: 1rem;
+    }
+    
+    .pc-unlock-btn {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}

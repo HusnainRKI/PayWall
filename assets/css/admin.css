@@ -1,0 +1,354 @@
+/**
+ * PayWall Premium Content - Admin Styles
+ */
+
+/* Payment modal styles for frontend */
+.pc-payment-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    display: none;
+}
+
+.pc-payment-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.pc-payment-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.pc-payment-modal-header {
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.pc-payment-modal-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.pc-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.pc-modal-close:hover {
+    color: #333;
+}
+
+.pc-payment-modal-body {
+    padding: 1.5rem;
+}
+
+.pc-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.pc-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.pc-form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.pc-form-group input:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+}
+
+.pc-form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.pc-form-actions {
+    text-align: right;
+}
+
+.pc-pay-btn {
+    background: #0073aa;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+}
+
+.pc-pay-btn:hover:not(:disabled) {
+    background: #005a87;
+}
+
+.pc-pay-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.pc-btn-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Modal open state */
+body.pc-modal-open {
+    overflow: hidden;
+}
+
+/* Error and success notices */
+.pc-error-notice,
+.pc-success-notice {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 100001;
+    display: none;
+}
+
+.pc-error-notice {
+    background: #dc3545;
+}
+
+.pc-success-notice {
+    background: #28a745;
+}
+
+/* Admin interface styles */
+.pc-admin-header {
+    background: white;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1.5rem;
+}
+
+.pc-admin-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.pc-admin-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.pc-admin-tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    color: #666;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.pc-admin-tab:hover {
+    color: #333;
+}
+
+.pc-admin-tab.active {
+    color: #0073aa;
+    border-bottom-color: #0073aa;
+}
+
+.pc-admin-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pc-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.pc-data-table th,
+.pc-data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.pc-data-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.pc-data-table tr:hover {
+    background: #f8f9fa;
+}
+
+.pc-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pc-status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.pc-status-expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.pc-action-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #666;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.pc-action-btn:hover {
+    border-color: #bbb;
+    color: #333;
+}
+
+.pc-action-btn--danger:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Block editor integration styles */
+.pc-lock-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.pc-lock-toggle {
+    margin-right: 0.5rem;
+}
+
+.pc-lock-settings {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pc-lock-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 80px;
+}
+
+.pc-lock-field label {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    color: #666;
+}
+
+.pc-lock-field input,
+.pc-lock-field select {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.pc-locked-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .pc-payment-modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .pc-admin-tabs {
+        flex-direction: column;
+    }
+    
+    .pc-lock-settings {
+        flex-direction: column;
+    }
+    
+    .pc-data-table {
+        font-size: 0.9rem;
+    }
+    
+    .pc-data-table th,
+    .pc-data-table td {
+        padding: 0.5rem;
+    }
+}

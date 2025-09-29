@@ -1,0 +1,82 @@
+/**
+ * Gate Start Block - Editor Styles
+ */
+
+.pc-gate-start-block {
+    border: 2px dashed #007cba;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: rgba(0, 124, 186, 0.05);
+}
+
+.pc-gate-start-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pc-gate-start-preview .pc-gate-icon {
+    font-size: 2rem;
+    color: #007cba;
+}
+
+.pc-gate-start-preview .pc-gate-content h4 {
+    color: #1e1e1e;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+}
+
+.pc-gate-start-preview .pc-gate-content p {
+    color: #757575;
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.pc-gate-description {
+    font-style: italic;
+    font-size: 0.85rem !important;
+    color: #666 !important;
+}
+
+/* Locked block wrapper styles */
+.pc-locked-block-wrapper {
+    position: relative;
+}
+
+.pc-locked-indicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #d63638;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pc-locked-block-wrapper .wp-block {
+    border: 2px dashed #d63638;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: rgba(214, 54, 56, 0.05);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pc-gate-start-preview {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .pc-locked-indicator {
+        position: relative;
+        top: auto;
+        right: auto;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+}
